@@ -249,6 +249,7 @@
     <Compile Include="Utils\ActionHelpers.cs" />
     <Compile Include="Utils\AzureStorage\AzureTableContext.cs" />
     <Compile Include="Utils\AzureStorage\AzureTableTokenCache.cs" />
+    <Compile Include="Utils\DriveItem.cs" />
     <Compile Include="Utils\HoneypotHelper.cs" />
     <Compile Include="Utils\HttpHelper.cs" />
     <Compile Include="Utils\SettingsHelper.cs" />
@@ -261,7 +262,6 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
-    <Content Include="images\markdown.png" />
     <Content Include="Content\LoadingSpinner.css" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />

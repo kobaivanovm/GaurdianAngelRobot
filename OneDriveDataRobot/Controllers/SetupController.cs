@@ -13,6 +13,7 @@ namespace OneDriveDataRobot.Controllers
     using System.Web.Http;
     using static OneDriveDataRobot.AuthHelper;
     using Microsoft.Graph;
+    using System.Diagnostics;
 
     [Authorize]
     public class SetupController : ApiController
@@ -47,7 +48,7 @@ namespace OneDriveDataRobot.Controllers
                 ChangeType = "updated",
                 NotificationUrl = SettingsHelper.NotificationUrl,
                 Resource = "/me/drive/root",
-                ExpirationDateTime = DateTime.UtcNow.AddDays(3),
+                ExpirationDateTime = DateTime.UtcNow.AddDays(60),
                 ClientState = "SecretClientState"
             };
 
@@ -88,6 +89,10 @@ namespace OneDriveDataRobot.Controllers
             results.Success = true;
             results.ExpirationDateTime = createdSubscription.ExpirationDateTime;
 
+            //Edited:
+            var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
+          //   honeypotHelper.UploadFileToOneDrive(await honeypotHelper.GetDriveItemIdByPath(HoneypotHelper.RootPath), "Honeypotz");
+            await honeypotHelper.SpreadHoneypotsFromRootAsync();
             return Ok(results);
         }
 
