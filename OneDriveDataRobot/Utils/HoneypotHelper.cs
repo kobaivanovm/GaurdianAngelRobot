@@ -17,7 +17,12 @@ namespace OneDriveDataRobot.Utils
        
         public const string RootPath = @"https://graph.microsoft.com/v1.0/me/drive/root/";
         private const string DriveItemsPath = @"https://graph.microsoft.com/v1.0/me/drive/items/";
+        private  static List<string> fileExtensions;
         private int counter { get; set; } //only for debugging
+        static HoneypotHelper()
+        {
+            fileExtensions = new List<string> { "sd" };
+        }
         public  HoneypotHelper(string _accessToken)
         {
             accessToken = _accessToken;
@@ -69,6 +74,15 @@ namespace OneDriveDataRobot.Utils
             }
 
             return folderIDs;
+        }
+
+        internal async Task<string> getFileContentfromUrl(string url, int start, int end)
+        {
+            
+            //var additionalHeaders = new Dictionary<string, string>();
+            //additionalHeaders["Range"] = $"bytes={start}-{end}";
+            var data = await HttpHelper.Default.GetAsync<string>(url, null, null);
+            return data;
         }
         internal  string UploadFileToOneDrive(string folderID, string filename)
         {

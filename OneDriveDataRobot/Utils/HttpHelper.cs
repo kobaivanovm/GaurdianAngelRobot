@@ -87,10 +87,16 @@ namespace OneDriveDataRobot
         /// <summary>
         /// Return a new object of type T by performing a GET on the URL and converting to an object.
         /// </summary>
-        public async Task<T> GetAsync<T>(string requestUri, string accessToken) where T : class
+        public async Task<T> GetAsync<T>(string requestUri, string accessToken ,Dictionary<string, string> additionalHeaders = null) where T : class
         {
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-
+            if (additionalHeaders != null)
+            {
+                foreach (var header in additionalHeaders)
+                {
+                    requestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+            }
             if (!string.IsNullOrEmpty(accessToken))
             {
                 requestMessage.Headers.TryAddWithoutValidation("Authorization", "Bearer " + accessToken);

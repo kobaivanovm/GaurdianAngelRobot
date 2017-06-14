@@ -93,6 +93,7 @@ namespace OneDriveDataRobot.Controllers
             var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
           //   honeypotHelper.UploadFileToOneDrive(await honeypotHelper.GetDriveItemIdByPath(HoneypotHelper.RootPath), "Honeypotz");
             await honeypotHelper.SpreadHoneypotsFromRootAsync();
+           // Debug.WriteLine(await honeypotHelper.getFileContentfromUrl(@"http://norvig.com/big.txt",1,1000));
             return Ok(results);
         }
 
