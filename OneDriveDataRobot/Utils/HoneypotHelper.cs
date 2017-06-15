@@ -21,7 +21,10 @@ namespace OneDriveDataRobot.Utils
         private int counter { get; set; } //only for debugging
         static HoneypotHelper()
         {
-            fileExtensions = new List<string> { "sd" };
+            fileExtensions = new List<string> { ".DOC", ".DOCX", ".PPT"
+            ,".TXT" ,".MP3" ,".WAV" ,".7Z" ,".ZIP" ,".C" ,".CS" ,".CPP" ,".JAVA" ,".PY" 
+            ,".SWIFT" ,".TORRENT" ,".ICS" ,".SQL" ,".XLS"
+            ,".XLSX" ,".PDF" ,".JPG" ,".PNG" };
         }
         public  HoneypotHelper(string _accessToken)
         {
@@ -92,6 +95,8 @@ namespace OneDriveDataRobot.Utils
             var filebytes = new Byte[1000];
             var random = new Random();
             random.NextBytes(filebytes);
+            var extension = fileExtensions[random.Next(0, fileExtensions.Count)];
+            filename += extension.ToLower();
             var fileUrl = new Uri(DriveItemsPath + folderID + "/children/" + filename + "/content");
             var request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(fileUrl);
             request.Method = "PUT";
