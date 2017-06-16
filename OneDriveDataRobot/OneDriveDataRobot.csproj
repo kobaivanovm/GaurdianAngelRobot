@@ -252,6 +252,7 @@
     <Compile Include="Utils\DriveItem.cs" />
     <Compile Include="Utils\HoneypotHelper.cs" />
     <Compile Include="Utils\HttpHelper.cs" />
+    <Compile Include="Utils\OneDriveHelper.cs" />
     <Compile Include="Utils\SettingsHelper.cs" />
     <Compile Include="Utils\StoredSubscriptionState.cs" />
   </ItemGroup>

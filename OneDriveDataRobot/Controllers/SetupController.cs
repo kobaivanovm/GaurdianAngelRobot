@@ -1,19 +1,20 @@
-﻿
+﻿using OneDriveDataRobot.Models;
+using OneDriveDataRobot.Utils;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using static OneDriveDataRobot.AuthHelper;
+using Microsoft.Graph;
+using System.Diagnostics;
+
 namespace OneDriveDataRobot.Controllers
 {
-    using OneDriveDataRobot.Models;
-    using OneDriveDataRobot.Utils;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Net.Http;
-    using System.Threading.Tasks;
-    using System.Web.Http;
-    using static OneDriveDataRobot.AuthHelper;
-    using Microsoft.Graph;
-    using System.Diagnostics;
+
 
     [Authorize]
     public class SetupController : ApiController
@@ -90,10 +91,14 @@ namespace OneDriveDataRobot.Controllers
             results.ExpirationDateTime = createdSubscription.ExpirationDateTime;
 
             //Edited:
-            var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
-          //   honeypotHelper.UploadFileToOneDrive(await honeypotHelper.GetDriveItemIdByPath(HoneypotHelper.RootPath), "Honeypotz");
-            await honeypotHelper.SpreadHoneypotsFromRootAsync();
-           // Debug.WriteLine(await honeypotHelper.getFileContentfromUrl(@"http://norvig.com/big.txt",1,1000));
+            /* var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
+             await honeypotHelper.SpreadHoneypotsFromRootAsync();*/
+            var oneDriveHelper = new OneDriveHelper(tokens.AccessToken);
+            await oneDriveHelper.GetFileSizeByID("017U6GZIJKIJT7YHUVL5A3W6HXYS3T5GDG");
+            await oneDriveHelper.GetNameByID("017U6GZIJKIJT7YHUVL5A3W6HXYS3T5GDG");
+
+
+
             return Ok(results);
         }
 
