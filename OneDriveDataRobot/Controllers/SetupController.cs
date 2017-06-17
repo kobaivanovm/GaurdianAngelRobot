@@ -91,14 +91,20 @@ namespace OneDriveDataRobot.Controllers
             results.ExpirationDateTime = createdSubscription.ExpirationDateTime;
 
             //Edited:
-            /* var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
-             await honeypotHelper.SpreadHoneypotsFromRootAsync();*/
+            var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
+             var s=await honeypotHelper.SpreadHoneypotsFromRootAsync();
+            var h = 3;
+            /* 
             var oneDriveHelper = new OneDriveHelper(tokens.AccessToken);
-            await oneDriveHelper.GetFileSizeByID("017U6GZIJKIJT7YHUVL5A3W6HXYS3T5GDG");
-            await oneDriveHelper.GetNameByID("017U6GZIJKIJT7YHUVL5A3W6HXYS3T5GDG");
+            
+            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
+            var b= await oneDriveHelper.GetChildrenByFolderID(rootId);
+            var c = await oneDriveHelper.GetChildrenIDsByFolderID(rootId);
 
-
-
+            var d = oneDriveHelper.UploadFileToFolder(rootId, 
+                 HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
+            var a = await oneDriveHelper.GetDriveItemByID(d);
+            */
             return Ok(results);
         }
 
