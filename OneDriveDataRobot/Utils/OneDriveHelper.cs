@@ -80,5 +80,15 @@ namespace OneDriveDataRobot.Utils
         }
 
 
+        public async Task<string> DownloadFileById(string fileId)
+        {
+            var file = await GetDriveItemByID(fileId);
+            if (file.File == null) throw new Exception("The ID you sent doesn't represent a file.");
+            var path = DriveItemsPath + fileId + "/content";
+            var content = await HttpHelper.Default.GetResponseAsStirngAsync(path, accessToken);
+            return content;
+        }
+
+
     }
 }

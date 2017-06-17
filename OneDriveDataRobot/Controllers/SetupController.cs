@@ -49,7 +49,8 @@ namespace OneDriveDataRobot.Controllers
                 ChangeType = "updated",
                 NotificationUrl = SettingsHelper.NotificationUrl,
                 Resource = "/me/drive/root",
-                ExpirationDateTime = DateTime.UtcNow.AddDays(60),
+                ExpirationDateTime = DateTime.UtcNow.AddMinutes(60),
+               // ExpirationDateTime = DateTime.UtcNow.AddDays(60),
                 ClientState = "SecretClientState"
             };
 
@@ -91,20 +92,22 @@ namespace OneDriveDataRobot.Controllers
             results.ExpirationDateTime = createdSubscription.ExpirationDateTime;
 
             //Edited:
-            var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
-             var s=await honeypotHelper.SpreadHoneypotsFromRootAsync();
-            var h = 3;
-            /* 
-            var oneDriveHelper = new OneDriveHelper(tokens.AccessToken);
-            
-            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
-            var b= await oneDriveHelper.GetChildrenByFolderID(rootId);
-            var c = await oneDriveHelper.GetChildrenIDsByFolderID(rootId);
+            /*   var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
+                 var s=await honeypotHelper.SpreadHoneypotsFromRootAsync();*/
 
-            var d = oneDriveHelper.UploadFileToFolder(rootId, 
-                 HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
-            var a = await oneDriveHelper.GetDriveItemByID(d);
-            */
+            var oneDriveHelper = new OneDriveHelper(tokens.AccessToken);
+            /* var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
+             var id = oneDriveHelper.UploadFileToFolder(rootId,
+                         HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
+             var a = await oneDriveHelper.GetDriveItemByID(id);*/
+            var b = await oneDriveHelper.DownloadFileById("017U6GZIMYJOOWFIS23RAKSULULFQH6MQL");
+            /* var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
+             var b= await oneDriveHelper.GetChildrenByFolderID(rootId);
+             var c = await oneDriveHelper.GetChildrenIDsByFolderID(rootId);
+             var d = oneDriveHelper.UploadFileToFolder(rootId, 
+                        HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));*/
+           // Microsoft.Graph.DriveItem;
+            var asda = 333;
             return Ok(results);
         }
 

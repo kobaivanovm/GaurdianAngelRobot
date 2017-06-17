@@ -47,6 +47,9 @@ namespace OneDriveDataRobot.Models
         [JsonProperty("cTag")]
         public string Ctag { get; set; }
 
+        [JsonProperty("file")]
+        public File File { get; set; }
+
         [JsonProperty("fileSystemInfo")]
         public FileSystemInfo FileSystemInfo { get; set; }
 
@@ -110,6 +113,18 @@ namespace OneDriveDataRobot.Models
         public string CreatedDateTime { get; set; }
         [JsonProperty("lastModifiedDateTime")]
         public string LastModifiedDateTime { get; set; }
+    }
+    [JsonObject]
+    public class Hashes
+    {
+        [JsonProperty("quickXorHash")]
+        public string QuickXorHash { get; set; }
+    }
+    [JsonObject]
+    public class File
+    {
+        [JsonProperty("hashes")]
+        public Hashes Hashes { get; set; }
     }
     [JsonObject]
     public class Folder
