@@ -54,7 +54,7 @@ namespace OneDriveDataRobot.Utils
                 string currentFolderID = q.Dequeue();
                 if (currentFolderID == null) continue;
 
-                var listChildrenfolderID = await oneDriveHelper.GetChildrenIDsByFolderID(currentFolderID);
+                var listChildrenfolderID = await oneDriveHelper.GetContainedFoldersIDs(currentFolderID);
                 foreach(var id in listChildrenfolderID) q.Enqueue(id);
              
                 oneDriveHelper.UploadFileToFolder(currentFolderID, getRandomFilename(), 

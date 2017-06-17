@@ -48,7 +48,15 @@ namespace OneDriveDataRobot.Utils
         public async Task<List<string>> GetChildrenIDsByFolderID(string folderID)
         {
             var children = await GetChildrenByFolderID(folderID);
+            
             return children.Select(p => p.Id).ToList();
+        }
+        public async Task<List<string>> GetContainedFoldersIDs(string folderID)
+        {
+            var allChildren = await GetChildrenByFolderID(folderID);
+            var folderIdChildern = from item in allChildren
+                                     where item.Folder != null select item.Id;
+            return folderIdChildern.ToList<string>(); ;
         }
         public string UploadFileToFolder(string folderID , string filename,byte[] filebytes)
         {
