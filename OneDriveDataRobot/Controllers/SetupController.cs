@@ -16,9 +16,11 @@ namespace OneDriveDataRobot.Controllers
 {
 
 
+
     [Authorize]
     public class SetupController : ApiController
     {
+
         public async Task<IHttpActionResult> ActivateRobot()
         {
             // Setup a Microsoft Graph client for calls to the graph
@@ -29,7 +31,7 @@ namespace OneDriveDataRobot.Controllers
                 var authToken = await AuthHelper.GetUserAccessTokenSilentAsync(graphBaseUrl);
                 req.Headers.TryAddWithoutValidation("Authorization", $"Bearer {authToken.AccessToken}");
             }));
-
+           
             // Get an access token and signedInUserId
             AuthTokens tokens = null;
             try
@@ -91,23 +93,24 @@ namespace OneDriveDataRobot.Controllers
             results.Success = true;
             results.ExpirationDateTime = createdSubscription.ExpirationDateTime;
 
-            //Edited:
+            //Please do not look at this, tomorrow ill make test from those lines 
             /*   var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
-                 var s=await honeypotHelper.SpreadHoneypotsFromRootAsync();*/
+                 var s=await honeypotHelper.SpreadHoneypotsFromRootAsync();
 
             var oneDriveHelper = new OneDriveHelper(tokens.AccessToken);
-            /* var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
+            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
              var id = oneDriveHelper.UploadFileToFolder(rootId,
                          HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
-             var a = await oneDriveHelper.GetDriveItemByID(id);*/
+             var a = await oneDriveHelper.GetDriveItemByID(id);
             var b = await oneDriveHelper.DownloadFileById("017U6GZIMYJOOWFIS23RAKSULULFQH6MQL");
-            /* var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
+             var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
              var b= await oneDriveHelper.GetChildrenByFolderID(rootId);
              var c = await oneDriveHelper.GetChildrenIDsByFolderID(rootId);
              var d = oneDriveHelper.UploadFileToFolder(rootId, 
                         HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));*/
-           // Microsoft.Graph.DriveItem;
-            var asda = 333;
+
+            //Eitan: suscriptionID: tokens.SignInUserId ,token: tokens.AccessToken, webhook: createdSubscription.Id
+            // please entter predefined firstname,lastname & email, tomorrow ill make it work
             return Ok(results);
         }
 

@@ -242,6 +242,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\DataRobotSetup.cs" />
+    <Compile Include="Models\GardianAngelUser.cs" />
     <Compile Include="Models\HomeModel.cs" />
     <Compile Include="Models\UserInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
