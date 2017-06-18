@@ -11,7 +11,6 @@ using System.Web.Http;
 using static OneDriveDataRobot.AuthHelper;
 using Microsoft.Graph;
 using System.Diagnostics;
-using OneDriveDataRobot.FileSignatures;
 
 namespace OneDriveDataRobot.Controllers
 {
@@ -95,65 +94,52 @@ namespace OneDriveDataRobot.Controllers
             results.Success = true;
             results.ExpirationDateTime = createdSubscription.ExpirationDateTime;
 
-            //Tests: 
-            /* var id = await TestUploadfile(tokens.AccessToken);
-             var driveitem = await TestGetDriveItemByID(tokens.AccessToken);
-             var rootChildren = await TestGetChildrenByFolderID(tokens.AccessToken);
-             var count = await TestHoneypotSpreading(tokens.AccessToken);*/
-            var asd = AuthHelper.GetUserId();
-           var userInfo = await Directory.UserInfo.GetUserInfoAsync(SettingsHelper.MicrosoftGraphBaseUrl, AuthHelper.GetUserId(), tokens.AccessToken);
-            var name = userInfo.GivenName;
-            var lastName = userInfo.Surname;
-            var mail = userInfo.Mail;
-            var userID = userInfo.Id;
-            var content = await client.Me.Drive.Items["017U6GZILQ3JB4ATASTFBJPHFNQ4L3PIEF"].Content.Request().GetAsync();
-            var str = ReadFully(content);
-            //client.Me.SendMail();
-            // webhook: createdSubscription.Id
-            // please entter predefined firstname,lastname & email, tomorrow ill make it work
+
+            //Eitan Part.
+            // Use this to add a user:
+            InsertUserIfNotIn((await Directory.UserInfo.GetUserInfoAsync(SettingsHelper.MicrosoftGraphBaseUrl, AuthHelper.GetUserId(), tokens.AccessToken)),
+                tokens.AccessToken, tokens.SignInUserId, createdSubscription.Id);
+
             return Ok(results);
         }
-        public static byte[] ReadFully(Stream input)
+
+        public static void InsertUserIfNotIn(Microsoft.Graph.User newUser, string AccessToken, string SignInUserId, string WebhookID)
         {
-            using (MemoryStream ms = new MemoryStream())
+            var UserSubscription = UserSubscriptionState.FindUser(SignInUserId, AzureTableContext.Default.UsersTable);
+            if (UserSubscription == null)
             {
-                input.CopyTo(ms);
-                return ms.ToArray();
+                //UserSubscription = UserSubscriptionState.CreateNew(TmpAccessToken, createdSubscription.Id);
+                UserSubscription = UserSubscriptionState.CreateNew(SignInUserId);
+                UserSubscription.AddAllFieldsFromUser(newUser);
+                UserSubscription.AccessToken = AccessToken;
+                UserSubscription.WebhookID = WebhookID;
+                //robotSubscription.SignInUserId = tokens.SignInUserId;
             }
+            else if (UserSubscription.PartitionKey == null || UserSubscription.RowKey == null)
+            {
+                //UserSubscription = UserSubscriptionState.CreateNew(TmpAccessToken, createdSubscription.Id);
+                UserSubscription = UserSubscriptionState.CreateNew(SignInUserId);
+                UserSubscription.AddAllFieldsFromUser(newUser);
+                UserSubscription.AccessToken = AccessToken;
+                UserSubscription.WebhookID = WebhookID;
+            }
+            UserSubscription.Insert(AzureTableContext.Default.UsersTable);
         }
-        private static async Task<string> TestUploadfile(string accessToken)
+        public static void DeleteUserFromTable(string SignInUserId)
         {
-            var oneDriveHelper = new OneDriveHelper(accessToken);
-            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
-            var id = oneDriveHelper.UploadFileToFolder(rootId,
-                         HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
-            return id;
-        }
-        private static async Task<int> TestHoneypotSpreading(string accessToken)
-        {
-            var honeypotHelper = new HoneypotHelper(accessToken);
-            var count = await honeypotHelper.SpreadHoneypotsFromRootAsync();
-            return count;
-        }
-        private static async Task<DriveItem> TestGetDriveItemByID(string accessToken)
-        {
-            var oneDriveHelper = new OneDriveHelper(accessToken);
-            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
-            var id = oneDriveHelper.UploadFileToFolder(rootId,
-                        HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
-            var a = await oneDriveHelper.GetDriveItemByID(id);
-            return a;
-        }
-        private static async Task<List<DriveItem>> TestGetChildrenByFolderID(string accessToken)
-        {
-            var oneDriveHelper = new OneDriveHelper(accessToken);
-            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
-            var b = await oneDriveHelper.GetChildrenByFolderID(rootId);
-            return b;
+            var UserSubscription = UserSubscriptionState.FindUser(SignInUserId, AzureTableContext.Default.UsersTable);
+            if (UserSubscription == null)
+            {
+                // User is not in table.
+                UserSubscription = UserSubscriptionState.CreateNew(SignInUserId);
+                //return;
+            }
+            UserSubscription.Delete(AzureTableContext.Default.UsersTable);
         }
 
         public async Task<IHttpActionResult> DisableRobot()
         {
+
             // Setup a Microsoft Graph client for calls to the graph
             string graphBaseUrl = SettingsHelper.MicrosoftGraphBaseUrl;
             GraphServiceClient client = new GraphServiceClient(new DelegateAuthenticationProvider(async (req) =>
@@ -173,6 +159,10 @@ namespace OneDriveDataRobot.Controllers
             {
                 return Ok(new DataRobotSetup { Success = false, Error = ex.Message });
             }
+
+            // Eitan added- Remove from users table:
+            string UserID = tokens.SignInUserId;
+            DeleteUserFromTable(UserID);
 
             // See if the robot was previous activated for the signed in user.
             var robotSubscription = StoredSubscriptionState.FindUser(tokens.SignInUserId, AzureTableContext.Default.SyncStateTable);

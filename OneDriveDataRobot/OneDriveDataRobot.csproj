@@ -27,6 +27,7 @@
     </NuGetPackageImportStamp>
     <WebProject_DirectoryAccessLevelKey>0</WebProject_DirectoryAccessLevelKey>
     <TargetFrameworkProfile />
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -259,6 +260,7 @@
     <Compile Include="Utils\OneDriveHelper.cs" />
     <Compile Include="Utils\SettingsHelper.cs" />
     <Compile Include="Utils\StoredSubscriptionState.cs" />
+    <Compile Include="Utils\UserSubscriptionState.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />

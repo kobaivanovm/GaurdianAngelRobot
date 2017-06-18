@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.13
+VisualStudioVersion = 15.0.26606.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneDriveDataRobot", "OneDriveDataRobot\OneDriveDataRobot.csproj", "{79BBB307-673E-47DF-8E4B-00AA971CA65A}"
 EndProject
@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AzureFunction Definition", 
 		AzureFunction\run.csx = AzureFunction\run.csx
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataRobotNoTableParam", "DataRobotNoTableParam\DataRobotNoTableParam\DataRobotNoTableParam.csproj", "{62870834-00CB-4E3F-863C-2A9468C28232}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{79BBB307-673E-47DF-8E4B-00AA971CA65A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79BBB307-673E-47DF-8E4B-00AA971CA65A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79BBB307-673E-47DF-8E4B-00AA971CA65A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62870834-00CB-4E3F-863C-2A9468C28232}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62870834-00CB-4E3F-863C-2A9468C28232}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62870834-00CB-4E3F-863C-2A9468C28232}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62870834-00CB-4E3F-863C-2A9468C28232}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

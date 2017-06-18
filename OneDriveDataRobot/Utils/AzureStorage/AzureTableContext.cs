@@ -50,7 +50,8 @@ namespace OneDriveDataRobot.Utils
         private readonly CloudTableClient client;
         public readonly CloudTable TokenCacheTable;
         public readonly CloudTable SyncStateTable;
-
+        //Eitan Added:
+        public readonly CloudTable UsersTable;
 
         private CloudStorageAccount StorageAccount
         {
@@ -66,6 +67,10 @@ namespace OneDriveDataRobot.Utils
 
             SyncStateTable = client.GetTableReference("syncState");
             SyncStateTable.CreateIfNotExists();
+
+            // Eitan Added:
+            UsersTable = client.GetTableReference("UsersManageHistory");
+            UsersTable.CreateIfNotExists();
         }
     }
 
