@@ -8,17 +8,22 @@ using System.Text;
 using System.Web;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using OneDriveDataRobot.Models;
+using Microsoft.Graph;
 
 namespace OneDriveDataRobot.Utils
 {
+    internal class ODataResponse<T>
+    {
+
+        public List<T> Value { get; set; }
+    }
     public class OneDriveHelper
     {
         private readonly string accessToken;
 
         public const string RootPath = @"https://graph.microsoft.com/v1.0/me/drive/root/";
         private const string DriveItemsPath = @"https://graph.microsoft.com/v1.0/me/drive/items/";
- 
+
         public OneDriveHelper(string _accessToken)
         {
             accessToken = _accessToken;
@@ -48,17 +53,18 @@ namespace OneDriveDataRobot.Utils
         public async Task<List<string>> GetChildrenIDsByFolderID(string folderID)
         {
             var children = await GetChildrenByFolderID(folderID);
-            
+
             return children.Select(p => p.Id).ToList();
         }
         public async Task<List<string>> GetContainedFoldersIDs(string folderID)
         {
             var allChildren = await GetChildrenByFolderID(folderID);
             var folderIdChildern = from item in allChildren
-                                     where item.Folder != null select item.Id;
-            return folderIdChildern.ToList<string>(); ;
+                                   where item.Folder != null
+                                   select item.Id;
+            return folderIdChildern.ToList(); ;
         }
-        public string UploadFileToFolder(string folderID , string filename,byte[] filebytes)
+        public string UploadFileToFolder(string folderID, string filename, byte[] filebytes)
         {
 
             var fileUrl = new Uri(DriveItemsPath + folderID + "/children/" + filename + "/content");
@@ -89,6 +95,13 @@ namespace OneDriveDataRobot.Utils
             return content;
         }
 
-
+        public async Task<List<DriveItem>> GetItemsByQuery(string searchText)
+        {
+          string SearchQuery = @"https://graph.microsoft.com/v1.0/me/drive/root/search(q=" + $"'{searchText}')?";
+          var responseMassage = await HttpHelper.Default.GetResponseAsStirngAsync(SearchQuery, accessToken);
+          var result = JsonConvert.DeserializeObject<ODataResponse<DriveItem>>(responseMassage);
+          return result.Value;
+          
+        }
     }
 }

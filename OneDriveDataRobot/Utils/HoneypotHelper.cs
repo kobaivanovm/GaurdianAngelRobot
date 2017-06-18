@@ -66,10 +66,11 @@ namespace OneDriveDataRobot.Utils
         }
 
 
-        //public async Task<int> DeleteAllHoneypotsAsync()
-        //{
+        public int DeleteAllHoneypotsAsync()
+        {
+            return 3;
 
-        //}
+        }
 
 
 

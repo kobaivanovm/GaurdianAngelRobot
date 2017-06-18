@@ -31,7 +31,7 @@ namespace OneDriveDataRobot.Controllers
                 var authToken = await AuthHelper.GetUserAccessTokenSilentAsync(graphBaseUrl);
                 req.Headers.TryAddWithoutValidation("Authorization", $"Bearer {authToken.AccessToken}");
             }));
-           
+
             // Get an access token and signedInUserId
             AuthTokens tokens = null;
             try
@@ -52,7 +52,7 @@ namespace OneDriveDataRobot.Controllers
                 NotificationUrl = SettingsHelper.NotificationUrl,
                 Resource = "/me/drive/root",
                 ExpirationDateTime = DateTime.UtcNow.AddMinutes(60),
-               // ExpirationDateTime = DateTime.UtcNow.AddDays(60),
+                // ExpirationDateTime = DateTime.UtcNow.AddDays(60),
                 ClientState = "SecretClientState"
             };
 
@@ -73,7 +73,8 @@ namespace OneDriveDataRobot.Controllers
                 createdSubscription = await client.Subscriptions.Request().AddAsync(notificationSubscription);
             }
 
-            var results = new DataRobotSetup() { 
+            var results = new DataRobotSetup()
+            {
                 SubscriptionId = createdSubscription.Id
             };
 
@@ -93,25 +94,60 @@ namespace OneDriveDataRobot.Controllers
             results.Success = true;
             results.ExpirationDateTime = createdSubscription.ExpirationDateTime;
 
-            //Please do not look at this, tomorrow ill make test from those lines 
-            /*   var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
-                 var s=await honeypotHelper.SpreadHoneypotsFromRootAsync();
-
-            var oneDriveHelper = new OneDriveHelper(tokens.AccessToken);
-            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
-             var id = oneDriveHelper.UploadFileToFolder(rootId,
-                         HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
-             var a = await oneDriveHelper.GetDriveItemByID(id);
-            var b = await oneDriveHelper.DownloadFileById("017U6GZIMYJOOWFIS23RAKSULULFQH6MQL");
-             var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
-             var b= await oneDriveHelper.GetChildrenByFolderID(rootId);
-             var c = await oneDriveHelper.GetChildrenIDsByFolderID(rootId);
-             var d = oneDriveHelper.UploadFileToFolder(rootId, 
-                        HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));*/
-
-            //Eitan: suscriptionID: tokens.SignInUserId ,token: tokens.AccessToken, webhook: createdSubscription.Id
+            //Tests: 
+            /* var id = await TestUploadfile(tokens.AccessToken);
+             var driveitem = await TestGetDriveItemByID(tokens.AccessToken);
+             var rootChildren = await TestGetChildrenByFolderID(tokens.AccessToken);
+             var count = await TestHoneypotSpreading(tokens.AccessToken);*/
+            var asd = AuthHelper.GetUserId();
+           var userInfo = await Directory.UserInfo.GetUserInfoAsync(SettingsHelper.MicrosoftGraphBaseUrl, AuthHelper.GetUserId(), tokens.AccessToken);
+            var name = userInfo.GivenName;
+            var lastName = userInfo.Surname;
+            var mail = userInfo.Mail;
+            var userID = userInfo.Id;
+            var content = await client.Me.Drive.Items["017U6GZILQ3JB4ATASTFBJPHFNQ4L3PIEF"].Content.Request().GetAsync();
+            var str = ReadFully(content);
+            // webhook: createdSubscription.Id
             // please entter predefined firstname,lastname & email, tomorrow ill make it work
             return Ok(results);
+        }
+        public static byte[] ReadFully(Stream input)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                input.CopyTo(ms);
+                return ms.ToArray();
+            }
+        }
+        private static async Task<string> TestUploadfile(string accessToken)
+        {
+            var oneDriveHelper = new OneDriveHelper(accessToken);
+            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
+            var id = oneDriveHelper.UploadFileToFolder(rootId,
+                         HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
+            return id;
+        }
+        private static async Task<int> TestHoneypotSpreading(string accessToken)
+        {
+            var honeypotHelper = new HoneypotHelper(accessToken);
+            var count = await honeypotHelper.SpreadHoneypotsFromRootAsync();
+            return count;
+        }
+        private static async Task<DriveItem> TestGetDriveItemByID(string accessToken)
+        {
+            var oneDriveHelper = new OneDriveHelper(accessToken);
+            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
+            var id = oneDriveHelper.UploadFileToFolder(rootId,
+                        HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
+            var a = await oneDriveHelper.GetDriveItemByID(id);
+            return a;
+        }
+        private static async Task<List<DriveItem>> TestGetChildrenByFolderID(string accessToken)
+        {
+            var oneDriveHelper = new OneDriveHelper(accessToken);
+            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
+            var b = await oneDriveHelper.GetChildrenByFolderID(rootId);
+            return b;
         }
 
         public async Task<IHttpActionResult> DisableRobot()

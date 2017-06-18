@@ -30,29 +30,8 @@
     <div class="col-md-6">
         @if (!string.IsNullOrEmpty(Model.SignInName))
         {
-        
-            <fieldset>
-                <legend>Please register to activate Guardian Angel Robot:</legend>
-                @using (Ajax.BeginForm("CalculateSimpleInterestResult", "CalculateSimpleInterest",
-                            new AjaxOptions { UpdateTargetId = "divInterestDeatils" }))
-                {
-                    <div id="divInterestDeatils"></div>
-                    <ol>
-                        <li>
-                            @Html.Label("Email")
-                            @Html.TextBox("email")
-                        </li>
-                        <li>
-                            @Html.Label("First Name")
-                            @Html.TextBox("firstName")
-                        </li>
-                        <li>
-                            @Html.Label("Last Name")
-                            @Html.TextBox("lastName")
-                        </li>
-                    </ol>
-                }
-            </fieldset>
+            <h2>Signed In</h2>
+            <p>Hello @Model.DisplayName! I'm the OneDrive data robot.</p>
             <p id="results"></p>
             <p>
                 <a class="btn btn-default" id="btnActivate" href="#" onclick="activateRobot();">Activate</a>
@@ -66,6 +45,7 @@
         }
     </div>
 </div>
+
 
 <script>
     function activateRobot() {

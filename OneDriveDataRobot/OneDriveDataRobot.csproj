@@ -250,7 +250,6 @@
     <Compile Include="Utils\ActionHelpers.cs" />
     <Compile Include="Utils\AzureStorage\AzureTableContext.cs" />
     <Compile Include="Utils\AzureStorage\AzureTableTokenCache.cs" />
-    <Compile Include="Models\DriveItem.cs" />
     <Compile Include="Utils\HoneypotHelper.cs" />
     <Compile Include="Utils\HttpHelper.cs" />
     <Compile Include="Utils\OneDriveHelper.cs" />

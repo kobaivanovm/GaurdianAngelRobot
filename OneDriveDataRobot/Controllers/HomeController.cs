@@ -47,7 +47,7 @@ namespace OneDriveDataRobot.Controllers
                         return Redirect("/Account/SignIn?force=1");
                     }
                     // Make an API request to get display name and MySite URL
-                    var response = await OneDriveDataRobot.Directory.UserInfo.GetUserInfoAsync(SettingsHelper.MicrosoftGraphBaseUrl, model.SignInName, accessToken.AccessToken);
+                    var response = await Directory.UserInfo.GetUserInfoAsync(SettingsHelper.MicrosoftGraphBaseUrl, model.SignInName, accessToken.AccessToken);
                     if (null != response)
                     {
                         model.DisplayName = response.DisplayName;

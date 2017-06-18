@@ -30,7 +30,5 @@ namespace OneDriveDataRobot.Models
         public string DisplayName { get; set; }
         public string SignInName { get; set; }
         public string OneDriveUrl { get; set; }
-
-        public bool Registered { get; set; }
     }
 }
