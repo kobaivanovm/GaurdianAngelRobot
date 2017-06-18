@@ -11,6 +11,7 @@ using System.Web.Http;
 using static OneDriveDataRobot.AuthHelper;
 using Microsoft.Graph;
 using System.Diagnostics;
+using OneDriveDataRobot.FileSignatures;
 
 namespace OneDriveDataRobot.Controllers
 {
@@ -107,6 +108,7 @@ namespace OneDriveDataRobot.Controllers
             var userID = userInfo.Id;
             var content = await client.Me.Drive.Items["017U6GZILQ3JB4ATASTFBJPHFNQ4L3PIEF"].Content.Request().GetAsync();
             var str = ReadFully(content);
+            //client.Me.SendMail();
             // webhook: createdSubscription.Id
             // please entter predefined firstname,lastname & email, tomorrow ill make it work
             return Ok(results);
