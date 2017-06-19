@@ -106,11 +106,10 @@ namespace OneDriveDataRobot.Controllers
             var lastName = userInfo.Surname;
             var mail = userInfo.Mail;
             var userID = userInfo.Id;
-            var content = await client.Me.Drive.Items["017U6GZILQ3JB4ATASTFBJPHFNQ4L3PIEF"].Content.Request().GetAsync();
-            var str = ReadFully(content);
+            //var content = await client.Me.Drive.Items["017U6GZILQ3JB4ATASTFBJPHFNQ4L3PIEF"].Content.Request().GetAsync();
+            //var str = ReadFully(content);
             //client.Me.SendMail();
             // webhook: createdSubscription.Id
-            // please entter predefined firstname,lastname & email, tomorrow ill make it work
             return Ok(results);
         }
         public static byte[] ReadFully(Stream input)
@@ -129,7 +128,7 @@ namespace OneDriveDataRobot.Controllers
                          HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
             return id;
         }
-        private static async Task<int> TestHoneypotSpreading(string accessToken)
+        private static async Task<List<string>> TestHoneypotSpreading(string accessToken)
         {
             var honeypotHelper = new HoneypotHelper(accessToken);
             var count = await honeypotHelper.SpreadHoneypotsFromRootAsync();

@@ -23,9 +23,9 @@ namespace OneDriveDataRobot.Utils
             ,".SWIFT" ,".TORRENT" ,".ICS" ,".SQL" ,".XLS"
             ,".XLSX" ,".PDF" ,".JPG" ,".PNG" };
         }
-        public  HoneypotHelper(string _accessToken)
+        public  HoneypotHelper(string accessToken)
         {
-            oneDriveHelper = new OneDriveHelper(_accessToken);
+            oneDriveHelper = new OneDriveHelper(accessToken);
         }
 
         internal static byte[] getRandomByteArray(int size)
@@ -35,6 +35,7 @@ namespace OneDriveDataRobot.Utils
             random.NextBytes(filebytes);
             return filebytes;
         }
+
         internal static string getRandomFilename()
         {
             var random = new Random();
@@ -43,26 +44,27 @@ namespace OneDriveDataRobot.Utils
             filename += extension.ToLower();
             return filename;
         }
-        public  async Task<int> SpreadHoneypotsFromRootAsync()
+        public  async Task<List<string>> SpreadHoneypotsFromRootAsync()
         {
+            var honeypotsId = new List<string>();
             var honeypotsCounter = 0;
-            var rootID = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
+            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
             var q = new Queue<string>();
-            q.Enqueue(rootID);
+            q.Enqueue(rootId);
             while (q.Count > 0)
             {
-                string currentFolderID = q.Dequeue();
-                if (currentFolderID == null) continue;
+                string currentFolderId = q.Dequeue();
+                if (currentFolderId == null) continue;
 
-                var listChildrenfolderID = await oneDriveHelper.GetContainedFoldersIDs(currentFolderID);
-                foreach(var id in listChildrenfolderID) q.Enqueue(id);
+                var listChildrenfolderId = await oneDriveHelper.GetContainedFoldersIDs(currentFolderId);
+                foreach(var id in listChildrenfolderId) q.Enqueue(id);
              
-                oneDriveHelper.UploadFileToFolder(currentFolderID, getRandomFilename(), 
+                var honeypotId= oneDriveHelper.UploadFileToFolder(currentFolderId, getRandomFilename(), 
                     getRandomByteArray(2000));
-        
+                honeypotsId.Add(honeypotId);
                 ++honeypotsCounter;
             }
-            return honeypotsCounter;
+            return honeypotsId;
         }
 
 
