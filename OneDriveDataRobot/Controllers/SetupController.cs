@@ -11,7 +11,7 @@ using System.Web.Http;
 using static OneDriveDataRobot.AuthHelper;
 using Microsoft.Graph;
 using System.Diagnostics;
-using OneDriveDataRobot.FileSignatures;
+using EmailUtils;
 
 namespace OneDriveDataRobot.Controllers
 {
@@ -101,11 +101,17 @@ namespace OneDriveDataRobot.Controllers
              var rootChildren = await TestGetChildrenByFolderID(tokens.AccessToken);
              var count = await TestHoneypotSpreading(tokens.AccessToken);*/
             var asd = AuthHelper.GetUserId();
-           var userInfo = await Directory.UserInfo.GetUserInfoAsync(SettingsHelper.MicrosoftGraphBaseUrl, AuthHelper.GetUserId(), tokens.AccessToken);
-            var name = userInfo.GivenName;
-            var lastName = userInfo.Surname;
-            var mail = userInfo.Mail;
-            var userID = userInfo.Id;
+            var userInfo = await Directory.UserInfo.GetUserInfoAsync(SettingsHelper.MicrosoftGraphBaseUrl, AuthHelper.GetUserId(), tokens.AccessToken);
+            try
+            {
+                EmailSender.Send(userInfo);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                throw;
+            }
+            
             //var content = await client.Me.Drive.Items["017U6GZILQ3JB4ATASTFBJPHFNQ4L3PIEF"].Content.Request().GetAsync();
             //var str = ReadFully(content);
             //client.Me.SendMail();
