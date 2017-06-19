@@ -170,6 +170,7 @@ namespace DataRobotNoTableParam
                         else
                         {
                             log.Info($"Honeypot file thought to bechanged, but it seems everything is alright.");
+                            Results.FilesList.Add(entity);
                             continue;
                         }
                     }

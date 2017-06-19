@@ -11,6 +11,7 @@ using System.Web.Http;
 using static OneDriveDataRobot.AuthHelper;
 using Microsoft.Graph;
 using System.Diagnostics;
+using EmailUtils;
 
 namespace OneDriveDataRobot.Controllers
 {
@@ -94,11 +95,16 @@ namespace OneDriveDataRobot.Controllers
             results.Success = true;
             results.ExpirationDateTime = createdSubscription.ExpirationDateTime;
 
-
             //Eitan Part.
             // Use this to add a user:
             InsertUserIfNotIn((await Directory.UserInfo.GetUserInfoAsync(SettingsHelper.MicrosoftGraphBaseUrl, AuthHelper.GetUserId(), tokens.AccessToken)),
                 tokens.AccessToken, tokens.SignInUserId, createdSubscription.Id);
+
+            var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
+
+            await honeypotHelper.SpreadHoneypotsFromRootAsync(HoneypotHelper.TextFromUrl);
+
+
 
             return Ok(results);
         }
@@ -108,16 +114,13 @@ namespace OneDriveDataRobot.Controllers
             var UserSubscription = StoredSubscriptionState.FindUser(SignInUserId, AzureTableContext.Default.UsersTable);
             if (UserSubscription == null)
             {
-                //UserSubscription = UserSubscriptionState.CreateNew(TmpAccessToken, createdSubscription.Id);
                 UserSubscription = StoredSubscriptionState.CreateNew(SignInUserId);
                 UserSubscription.AddAllFieldsFromUser(newUser);
                 UserSubscription.AccessToken = AccessToken;
                 UserSubscription.WebhookID = WebhookID;
-                //robotSubscription.SignInUserId = tokens.SignInUserId;
             }
             else if (UserSubscription.PartitionKey == null || UserSubscription.RowKey == null)
             {
-                //UserSubscription = UserSubscriptionState.CreateNew(TmpAccessToken, createdSubscription.Id);
                 UserSubscription = StoredSubscriptionState.CreateNew(SignInUserId);
                 UserSubscription.AddAllFieldsFromUser(newUser);
                 UserSubscription.AccessToken = AccessToken;
@@ -132,14 +135,14 @@ namespace OneDriveDataRobot.Controllers
             {
                 // User is not in table.
                 UserSubscription = StoredSubscriptionState.CreateNew(SignInUserId);
-                //return;
             }
             UserSubscription.Delete(AzureTableContext.Default.UsersTable);
         }
 
+
+
         public async Task<IHttpActionResult> DisableRobot()
         {
-
             // Setup a Microsoft Graph client for calls to the graph
             string graphBaseUrl = SettingsHelper.MicrosoftGraphBaseUrl;
             GraphServiceClient client = new GraphServiceClient(new DelegateAuthenticationProvider(async (req) =>
@@ -160,10 +163,6 @@ namespace OneDriveDataRobot.Controllers
                 return Ok(new DataRobotSetup { Success = false, Error = ex.Message });
             }
 
-            // Eitan added- Remove from users table:
-            string UserID = tokens.SignInUserId;
-            DeleteUserFromTable(UserID);
-
             // See if the robot was previous activated for the signed in user.
             var robotSubscription = StoredSubscriptionState.FindUser(tokens.SignInUserId, AzureTableContext.Default.SyncStateTable);
 
@@ -181,7 +180,7 @@ namespace OneDriveDataRobot.Controllers
 
             // Remove the robotSubscription information
             robotSubscription.Delete(AzureTableContext.Default.SyncStateTable);
-
+            await HoneypotHelper.DeleteAllHoneypotsAsync(client);
             return Ok(new DataRobotSetup { Success = true, Error = "The robot was been deactivated from your account." });
         }
     }
