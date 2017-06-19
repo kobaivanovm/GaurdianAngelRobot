@@ -163,7 +163,6 @@ namespace DataRobotNoTableParam
                         if (HasHoneypotChanged(item, log) == true)
                         {
                             log.Info($"Honeypot file was changed. An attack is underway.");
-                            //IsAttackInPlace = true;
                             Results.IsBeingAttacked = true;
                             break;
                         }
@@ -298,9 +297,6 @@ namespace DataRobotNoTableParam
             }
             if (SuspectsNumber >= MaxNumberOfSuspects)
             {
-                // An attack is under way
-                //needed outside of loop too
-                //IsAttackInPlace = true;
                 Results.IsBeingAttacked = true;
             }
             return Results;
@@ -352,12 +348,10 @@ namespace DataRobotNoTableParam
         }
         public static byte[] ReadFully(Stream input, TraceWriter log)    
         {
-            //log.Info($"For debugging in ReadFully: Stream size is: {input.Length}");//TODO remove
             input.Position = 0;
             byte[] buffer = new byte[input.Length];
             for (int totalBytesCopied = 0; totalBytesCopied < input.Length;)
                 totalBytesCopied += input.Read(buffer, totalBytesCopied, Convert.ToInt32(input.Length) - totalBytesCopied);
-            //log.Info($"For debugging: buffer size is: {buffer.Length}");//TODO remove
             return buffer;
         }
 
@@ -423,8 +417,6 @@ namespace DataRobotNoTableParam
             List<DriveItem> changedFileDriveItems = new List<DriveItem>();
             List<string> DeletedFileIds = new List<string>();
 
-            //List<DriveItem> tmpList = new List<DriveItem>();//TODO remove
-
             IDriveItemDeltaRequest request = new DriveItemDeltaRequest(deltaUrl, client, null);
 
             // Only allow reading 50 pages, if we read more than that, we're going to cancel out
@@ -436,14 +428,6 @@ namespace DataRobotNoTableParam
                 log.Verbose($"Found {deltaResponse.Count} files changed in this page.");
                 try
                 {
-                    /////////////////////////////////////
-                    /*IEnumerable<DriveItem> FilesWithID = (from f in deltaResponse
-                                                                    where f.File != null && f.CreatedBy.User.Id != null && f.Deleted == null
-                                                                    select f);
-                    log.Info($"Found {tmpList.Count()} tmpList OneDrive files in this page.");
-                    tmpList.AddRange(tmpList);*/
-                    /////////////////////////////////////
-
                     // Find changed files of any type
                     IEnumerable<DriveItem> ChangedDriveItemFiles = (from f in deltaResponse
                                                                     where f.File != null && f.Name != null && f.Deleted == null
@@ -469,22 +453,6 @@ namespace DataRobotNoTableParam
                     log.Info($"Exception enumerating changed files: {ex.ToString()}");
                     throw;
                 }
-
-                //DriveItem tmp = tmpList.First(x => x.Deleted == null);
-                /*log.Info($"Debugging 2");
-                DriveItem tmp = tmpList[0];
-                log.Info($"tmp ID: {tmp.Id}");
-                log.Info($"For debugging- tmp.CreatedBy.User.Id is null => {tmp == null}");
-                log.Info($"For debugging- tmp.CreatedBy is null => {tmp.CreatedBy == null}");
-                log.Info($"For debugging- tmp.CreatedBy.User is null => {tmp.CreatedBy.User == null}");
-                log.Info($"For debugging- tmp.CreatedBy.User.Id is null => {tmp.CreatedBy.User.Id == null}");
-                log.Info($"For debugging- tmp.CreatedBy.User.DisplayName is null => {tmp.CreatedBy.User.DisplayName == null}");
-                log.Info($"For debugging- tmp.CreatedBy.User.DisplayName => {tmp.CreatedBy.User.DisplayName}");
-                log.Info($"For debugging- tmp.CreatedBy.User.Id is => {tmp.CreatedBy.User.Id}");
-                log.Info($"For debugging- tmp.LastModifiedBy is null => {(tmp.LastModifiedBy == null)}");
-                log.Info($"For debugging- tmp.LastModifiedBy.User is null => {(tmp.LastModifiedBy.User == null)}");
-                log.Info($"For debugging- tmp.LastModifiedBy.User.Id is null => {(tmp.LastModifiedBy.User.Id == null)}");
-                log.Info($"For debugging- tmp.LastModifiedBy.User.Id is  => {(tmp.LastModifiedBy.User.Id)}");*/
 
                 //**** Eitan added:
                 bool result = await RemoveFilesFromStorageTable(FilesMonitorTable, subscriptionId, DeletedFileIds, log);

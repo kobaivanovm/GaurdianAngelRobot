@@ -114,13 +114,16 @@ namespace OneDriveDataRobot.Controllers
             var UserSubscription = StoredSubscriptionState.FindUser(SignInUserId, AzureTableContext.Default.UsersTable);
             if (UserSubscription == null)
             {
+                //UserSubscription = UserSubscriptionState.CreateNew(TmpAccessToken, createdSubscription.Id);
                 UserSubscription = StoredSubscriptionState.CreateNew(SignInUserId);
                 UserSubscription.AddAllFieldsFromUser(newUser);
                 UserSubscription.AccessToken = AccessToken;
                 UserSubscription.WebhookID = WebhookID;
+                //robotSubscription.SignInUserId = tokens.SignInUserId;
             }
             else if (UserSubscription.PartitionKey == null || UserSubscription.RowKey == null)
             {
+                //UserSubscription = UserSubscriptionState.CreateNew(TmpAccessToken, createdSubscription.Id);
                 UserSubscription = StoredSubscriptionState.CreateNew(SignInUserId);
                 UserSubscription.AddAllFieldsFromUser(newUser);
                 UserSubscription.AccessToken = AccessToken;
@@ -135,6 +138,7 @@ namespace OneDriveDataRobot.Controllers
             {
                 // User is not in table.
                 UserSubscription = StoredSubscriptionState.CreateNew(SignInUserId);
+                //return;
             }
             UserSubscription.Delete(AzureTableContext.Default.UsersTable);
         }
