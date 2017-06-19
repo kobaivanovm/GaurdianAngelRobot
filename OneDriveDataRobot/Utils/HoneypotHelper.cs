@@ -70,9 +70,9 @@ namespace OneDriveDataRobot.Utils
             }
             return honeypotsId;
         }
-        
 
-        public static  async Task DeleteAllHoneypotsAsync(GraphServiceClient client)
+
+        public static async Task DeleteAllHoneypotsAsync(GraphServiceClient client)
         {
             var a = await client.Me.Drive.Search("honeypot").Request().GetAsync();
             foreach (var file in a.CurrentPage)
