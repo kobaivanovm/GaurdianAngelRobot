@@ -35,11 +35,11 @@ namespace DataRobotNoTableParam
         public static readonly long MaxProccessingSize = (128 * (long)Math.Pow(2, 20));//128MB
 
         // Main entry point for our Azure Function. Listens for webhooks from OneDrive and responds to the webhook with a 204 No Content.
-        [FunctionName("OneDriveRobotFunctionVersion8")]
+        [FunctionName("OneDriveRobotFunctionVersion9")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         //public static async Task<object> Run(HttpRequestMessage req, CloudTable syncStateTable, CloudTable tokenCacheTable, TraceWriter log)
         {
-            log.Info($"Running Version 109 (for debugging: 20:54)");
+            log.Info($"Running Version 110 (for debugging: 21:19)");
 
             log.Info($"Webhook was triggered!");
 
@@ -224,7 +224,7 @@ namespace DataRobotNoTableParam
                 try
                 {
                     var partitionFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "AAA");
-                    var userIdFilter = TableQuery.GenerateFilterCondition("SignInUserId", QueryComparisons.Equal, userId);
+                    var userIdFilter = TableQuery.GenerateFilterCondition("SubscriptionId", QueryComparisons.Equal, userId);
                     string filter = TableQuery.CombineFilters(partitionFilter, TableOperators.And, userIdFilter);
 
                     var query = new TableQuery<StoredSubscriptionState>().Where(filter).Take(1);
