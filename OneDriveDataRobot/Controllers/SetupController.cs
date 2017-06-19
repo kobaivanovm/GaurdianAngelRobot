@@ -95,67 +95,15 @@ namespace OneDriveDataRobot.Controllers
             results.Success = true;
             results.ExpirationDateTime = createdSubscription.ExpirationDateTime;
 
-            //Tests: 
-            /* var id = await TestUploadfile(tokens.AccessToken);
-             var driveitem = await TestGetDriveItemByID(tokens.AccessToken);
-             var rootChildren = await TestGetChildrenByFolderID(tokens.AccessToken);
-             var count = await TestHoneypotSpreading(tokens.AccessToken);*/
-            var asd = AuthHelper.GetUserId();
-            var userInfo = await Directory.UserInfo.GetUserInfoAsync(SettingsHelper.MicrosoftGraphBaseUrl, AuthHelper.GetUserId(), tokens.AccessToken);
-            try
-            {
-                EmailSender.Send(userInfo);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.Message);
-                throw;
-            }
-            
-            //var content = await client.Me.Drive.Items["017U6GZILQ3JB4ATASTFBJPHFNQ4L3PIEF"].Content.Request().GetAsync();
-            //var str = ReadFully(content);
-            //client.Me.SendMail();
-            // webhook: createdSubscription.Id
+            var honeypotHelper = new HoneypotHelper(tokens.AccessToken);
+
+            await honeypotHelper.SpreadHoneypotsFromRootAsync(HoneypotHelper.TextFromUrl);
+         
+
             return Ok(results);
         }
-        public static byte[] ReadFully(Stream input)
-        {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                input.CopyTo(ms);
-                return ms.ToArray();
-            }
-        }
-        private static async Task<string> TestUploadfile(string accessToken)
-        {
-            var oneDriveHelper = new OneDriveHelper(accessToken);
-            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
-            var id = oneDriveHelper.UploadFileToFolder(rootId,
-                         HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
-            return id;
-        }
-        private static async Task<List<string>> TestHoneypotSpreading(string accessToken)
-        {
-            var honeypotHelper = new HoneypotHelper(accessToken);
-            var count = await honeypotHelper.SpreadHoneypotsFromRootAsync();
-            return count;
-        }
-        private static async Task<DriveItem> TestGetDriveItemByID(string accessToken)
-        {
-            var oneDriveHelper = new OneDriveHelper(accessToken);
-            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
-            var id = oneDriveHelper.UploadFileToFolder(rootId,
-                        HoneypotHelper.getRandomFilename(), HoneypotHelper.getRandomByteArray(2000));
-            var a = await oneDriveHelper.GetDriveItemByID(id);
-            return a;
-        }
-        private static async Task<List<DriveItem>> TestGetChildrenByFolderID(string accessToken)
-        {
-            var oneDriveHelper = new OneDriveHelper(accessToken);
-            var rootId = await oneDriveHelper.GetIDByPath(OneDriveHelper.RootPath);
-            var b = await oneDriveHelper.GetChildrenByFolderID(rootId);
-            return b;
-        }
+
+
 
         public async Task<IHttpActionResult> DisableRobot()
         {
@@ -196,7 +144,7 @@ namespace OneDriveDataRobot.Controllers
 
             // Remove the robotSubscription information
             robotSubscription.Delete(AzureTableContext.Default.SyncStateTable);
-
+            await HoneypotHelper.DeleteAllHoneypotsAsync(client);
             return Ok(new DataRobotSetup { Success = true, Error = "The robot was been deactivated from your account." });
         }
     }
