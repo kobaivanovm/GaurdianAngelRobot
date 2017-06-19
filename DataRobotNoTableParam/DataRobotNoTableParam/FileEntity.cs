@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DataRobotNoTableParam
 {
-    class FileEntity : TableEntity
+    public class FileEntity : TableEntity
     {
         public FileEntity(string UserSubscriptionID, string FileID)
         {
@@ -88,6 +88,7 @@ namespace DataRobotNoTableParam
         public bool IsFile { get; set; }
         public double Entropy { get; set; }
         public string FileMagic { get; set; }
+        //public System.Collections.ObjectModel.Collection<bool> FileMagicBytes { get; set; }
         public string Description { get; set; }
         public string WebUrl { get; set; }
         public User CreatedByUser { get; set; }

@@ -30,15 +30,16 @@ namespace DataRobotNoTableParam
         public const int MaxNumberOfSuspects = 30;
         public const string NumberOfSuspectsPartitionKey = "GuardianAngelSuspectsPartition";
         public const string NumberOfSuspectsRowKey = "GuardianAngelSuspectsRow";
-        public const int MaxFileSize = 2 ^ 40;//1GB
-        public const int MinFileSize = 512;//512 Bytes
+        public const long MaxFileSize = 128*(2^30);//128MB
+        public const long MinFileSize = 512;//512 Bytes
+        public const int MaxProccessingSize = 4*(2^30);//4M Bytes
 
         // Main entry point for our Azure Function. Listens for webhooks from OneDrive and responds to the webhook with a 204 No Content.
         [FunctionName("OneDriveRobotFunctionVersion2")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         //public static async Task<object> Run(HttpRequestMessage req, CloudTable syncStateTable, CloudTable tokenCacheTable, TraceWriter log)
         {
-            log.Info($"Running Version 45 (for debugging: 00:52)");
+            log.Info($"Running Version 54 (for debugging: 04:57)");
 
             log.Info($"Webhook was triggered!");
 

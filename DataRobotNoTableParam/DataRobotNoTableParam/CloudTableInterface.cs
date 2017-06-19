@@ -33,6 +33,21 @@ namespace DataRobotNoTableParam
                 return false;
             }
         }
+        public static async Task<bool> InsertOrReplace(CloudTable table, TableEntity entity)
+        {
+            TableOperation insert = TableOperation.InsertOrReplace(entity);
+
+            // Execute the retrieve operation.
+            TableResult retrievedResult = await table.ExecuteAsync(insert);
+            if (retrievedResult.Result != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         /// <summary>
         /// Same as other insert, but avoid using this one.
         /// </summary>
@@ -181,6 +196,29 @@ namespace DataRobotNoTableParam
             }
             return result;
         }
+
+        public static async Task<FileEntity> FindFile(CloudTable table, string PartitionKey, string RowKey)
+        {
+            // Create a retrieve operation that takes a customer entity.
+            TableOperation retrieveOperation = TableOperation.Retrieve<FileEntity>(PartitionKey, RowKey);
+
+            // Execute the retrieve operation.
+            TableResult retrievedResult = await table.ExecuteAsync(retrieveOperation);
+            //TableResult retrievedResult = table.Execute(retrieveOperation);
+
+            // Print the phone number of the result.
+            if (retrievedResult.Result != null)
+            {
+                //Console.WriteLine(((CustomerEntity)retrievedResult.Result).PhoneNumber);
+                return (FileEntity)retrievedResult.Result;
+            }
+            else
+            {
+                //Console.WriteLine("The phone number could not be retrieved.");
+                return null;
+            }
+        }
+
         /// <summary>
         /// Find a file entity in files table.
         /// Return the file entity if found, null otherwise.
