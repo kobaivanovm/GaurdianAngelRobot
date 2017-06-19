@@ -12,6 +12,15 @@ using static DataRobotNoTableParam.DataRobotNoTableParamFunction;
 
 namespace DataRobotNoTableParam
 {
+    public class FuntionsResults
+    {
+        public List<FileEntity> FilesList;
+        public bool IsBeingAttacked;
+        public FuntionsResults()
+        {
+            FilesList = new List<FileEntity>();
+        }
+    }
     public static class FileMonitorOneDrive
     {
         private const string FileTriggerWord = DataRobotNoTableParamFunction.TriggerWord;
@@ -88,19 +97,259 @@ namespace DataRobotNoTableParam
 
             // Do work on changed files such as security checks:
             ////////////////Should be here, not yet///////////////////////////
-            IsBeingAttacked = await DoWorkOnChangedFiles(client, FilesMonitorTable, ChangedFilesDriveItems, subscriptionId, log);
-            if (IsBeingAttacked == true)
+            //List<FileEntity> FilesList = await GetFileEntitiesWithAddedInfo(client, FilesMonitorTable, ChangedFilesDriveItems, subscriptionId, log);
+            FuntionsResults Results = await DoWorkOnChangedFiles(client, FilesMonitorTable, ChangedFilesDriveItems, subscriptionId, log);
+            //IsBeingAttacked = await DoWorkOnChangedFiles(client, FilesMonitorTable, ChangedFilesDriveItems, subscriptionId, log);
+            if (Results.IsBeingAttacked == true)
             {
                 // Do something to stop it.
             }
 
             // Add to storage if needed
-            bool WereFiledAdded = await AddFilesToStorageTableIfNeeded(client, FilesMonitorTable, subscriptionId, ChangedFilesDriveItems, log);
+            //bool WereFiledAdded = await AddFilesToStorageTableIfNeeded(client, FilesMonitorTable, subscriptionId, ChangedFilesDriveItems, log);
+            bool WereFiledAdded = await AddFilesToStorageTableIfNeeded(client, FilesMonitorTable, subscriptionId, Results.FilesList, log);
 
             // Update our saved state for this subscription
             state.Insert(syncStateTable);
             return ((result == true) ? result : true);
         }
+
+        public static async Task<FuntionsResults> DoWorkOnChangedFiles(GraphServiceClient client, CloudTable FilesMonitorTable, List<DriveItem> ChangedFilesList, string subscriptionId, TraceWriter log)
+        {
+            //bool IsAttackInPlace = false;
+            int FileIsSuspicious = 0;
+
+            long? SuspectsNumber = null;
+
+            FuntionsResults Results = new FuntionsResults();
+
+            // Do work on the changed files
+            foreach (DriveItem item in ChangedFilesList)
+            {
+                FileIsSuspicious = 0;
+                log.Info($"Processing changes in file: {item.Id}");
+                try
+                {
+                    log.Info($"Doing security checks on file: {item.Name}");
+                    FileEntity entity = await FileCloudTable.FindFile(FilesMonitorTable, subscriptionId, item.Id);
+                    if (entity == null)
+                    {
+                        log.Info($"This is a new file");
+                        // File is not in table (a new file)
+                        entity = new FileEntity(subscriptionId, item.Id);
+                        entity.AddParametersFromDriveItem(item);
+                        entity.IsNew = true;
+                    }
+                    else if (((entity.RowKey == item.Id) && (entity.PartitionKey != subscriptionId)) ||
+                        ((entity.PartitionKey == subscriptionId) && (entity.RowKey != item.Id)))
+                    {
+                        log.Info($"** Something funky is going on **");
+                        continue;
+                    }
+
+                    // Derive the file content:
+                    Stream content;
+                    if (item.Content == null)
+                    {
+                        log.Info($"item.Content is null.");
+                        content = await client.Me.Drive.Items[item.Id].Content.Request().GetAsync();
+                    }
+                    else
+                    {
+                        log.Info($"item.Content is not null, so use it.");
+                        content = item.Content;
+                    }
+                    if (content == null)
+                    {
+                        log.Info($"Content is still null even though we retrieved it. Very strange. File name is {item.Name}");
+                        continue;
+                    }
+                    ////////////////Testing:
+                    /*if (content != null)//TODO remove
+                    { 
+                        log.Info($"(content != null): {content != null}");
+                        using (var reader = new System.IO.StreamReader(content))
+                        {
+                            string stam = reader.ReadToEnd();
+                            log.Info($"Content is: {stam}");
+                        }
+                    }*/
+                    //////////////////////
+                    // Check if the file is honeypot, if so was it changed:
+                    log.Info($"Checking Honeyppt things:");
+                    bool IsWorthHoney = IsHoneypot(item);
+                    if (IsWorthHoney == true)
+                    {
+                        if (HasHoneypotChanged(item, IsWorthHoney) == true)
+                        {
+                            log.Info($"Honeypot file was changed. An attack is underway.");
+                            //IsAttackInPlace = true;
+                            Results.IsBeingAttacked = true;
+                            break;
+                        }
+                        else
+                        {
+                            log.Info($"Honeypot file thought to bechanged, but it seems everything is alright.");
+                        }
+                    }
+
+                    // Check if the magic number is legall:
+                    log.Info($"Checking magic number:");
+                    var inspector = new FileFormatInspector();
+                    var format = inspector.DetermineFileFormat(content);
+                    var magic = format.Extension;
+                    var extension = Path.GetExtension(item.Name);
+                    if (magic == extension.Substring(1))//ignore dot
+                    {
+                        log.Info($"Both magic and extension are: {extension}");
+                    }
+                    else
+                    {
+                        log.Info($"File magic is {magic}, while file extension is {extension}. Suspicious!");
+                        FileIsSuspicious++;
+                        continue;
+                        //maby break if not only suspicious.
+                    }
+
+                    double entropy = (-1);//default value.
+                    double previousEntropy = (-1);//default value.
+
+                    byte[] bytesContent = ReadFully(content, log);
+
+                    log.Info($"File is of size: {item.Size}");
+                    // Check if file is too small to check.
+                    if (item.Size < MinFileSize)
+                    {
+                        log.Info($"Size is too small");
+                        continue;
+                    }
+                    //if (item.Size > MaxFileSize)
+                    else if (item.Size > (MaxFileSize ^ 2))//For debugging. Weird size problem
+                    {
+                        log.Info($"Size is too large.");
+                        // Check only a small part of file.
+                        //log.Info($"For debugging: content Stream Size: {content.Length}");//TODO remove
+                        int ContentSize = bytesContent.Length;
+                        //log.Info($"For debugging: Content Size: {ContentSize}");//TODO remove
+                        int FileIntervals = ContentSize / 12;
+                        //log.Info($"For debugging: File Intervals: {FileIntervals}");//TODO remove
+                        byte[] firstBytes = new byte[FileIntervals];
+                        Array.Copy(bytesContent, ContentSize / 4, firstBytes, 0, FileIntervals);
+                        byte[] MidBytes = new byte[FileIntervals];
+                        Array.Copy(bytesContent, ContentSize / 2, MidBytes, 0, FileIntervals);
+                        byte[] LastBytes = new byte[FileIntervals];
+                        Array.Copy(bytesContent, ((3 * ContentSize) / 4), LastBytes, 0, FileIntervals);
+                        double firstPartEntropy = EntropyCalculator.Entropy(firstBytes);
+                        double MidPartEntropy = EntropyCalculator.Entropy(MidBytes);
+                        double LastPartEntropy = EntropyCalculator.Entropy(LastBytes);
+                        entropy = ((firstPartEntropy + MidPartEntropy + LastPartEntropy) / 3);
+                    }
+                    if (entity != null)
+                    {
+                        log.Info($"Check file statistics");
+                        // Check statistical match between existing version and new version.
+                        previousEntropy = entity.Entropy;
+                        if (previousEntropy < entropy + 0.5 || previousEntropy > entropy + 2 ||
+                            Path.GetExtension(item.Name) != Path.GetExtension(entity.Name) ||
+                            (entity.FileMagic != null && entity.FileMagic != magic))
+                        {
+                            FileIsSuspicious++;
+                        }
+                    }
+
+                    // Check entropy of file is legal.
+                    if (entropy < 0)
+                    {
+                        entropy = EntropyCalculator.Entropy(bytesContent);
+                    }
+                    log.Info($"File {item.Name} has entropy: {entropy}.");
+
+                    // Update file's entropy and magic:
+                    entity.FileMagic = magic;
+                    entity.Entropy = entropy;
+                    Results.FilesList.Add(entity);
+
+                    if (EntropyValue.IsFileEncrypted(entropy))
+                    {
+                        FileIsSuspicious++;
+                    }
+
+                    // Check if file was found to suspicious.
+                    if (FileIsSuspicious > 0)
+                    {
+                        SuspectsNumber = await FileCloudTable.FindSuspectsNumber(FilesMonitorTable, subscriptionId);
+                        if (SuspectsNumber == null)
+                        {
+                            log.Info($"FileCloudTable.FindSuspectsNumber(FilesMonitorTable) is null. This is realy bad");
+                            SuspectsNumber = 1;
+                            await FileCloudTable.InsertSuspectsNumber(FilesMonitorTable, subscriptionId, SuspectsNumber);
+                        }
+                        else if (SuspectsNumber == MaxNumberOfSuspects)
+                        {
+                            log.Info($"Reached MaxNumberOfSuspects");
+                            // An attack is under way
+                            //IsAttackInPlace = true;
+                            Results.IsBeingAttacked = true;
+                            break;
+                        }
+                        else if (FileIsSuspicious == 3)
+                        {
+                            log.Info($"Found 3 suspicious attributes. Assume an attacks is underway.");
+                            // An attack is under way
+                            //IsAttackInPlace = true;
+                            Results.IsBeingAttacked = true;
+                            break;
+                        }
+                        SuspectsNumber++;
+                        bool InsertResult = await FileCloudTable.InsertSuspectsNumber(FilesMonitorTable, subscriptionId, SuspectsNumber);
+                        log.Info($"For debugging: tried to insert");
+                        if (SuspectsNumber >= MaxNumberOfSuspects)
+                        {
+                            //IsAttackInPlace = true;
+                            Results.IsBeingAttacked = true;
+                            break;
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    log.Info($"Exception processing file: {ex.Message}");
+                    //IsAttackInPlace = false;
+                }
+            }
+            if (SuspectsNumber >= MaxNumberOfSuspects)
+            {
+                // An attack is under way
+                //needed outside of loop too
+                //IsAttackInPlace = true;
+                Results.IsBeingAttacked = true;
+            }
+            return Results;
+        }
+
+        /*public static async Task<List<FileEntity>> GetFileEntitiesWithAddedInfo(GraphServiceClient client, CloudTable FilesMonitorTable, List<DriveItem> ChangedFilesList, string subscriptionId, TraceWriter log)
+        {
+            List<FileEntity> FilesList = new List<FileEntity>();
+            foreach (DriveItem item in ChangedFilesList)
+            {
+                FileEntity entity = await FileCloudTable.FindFile(FilesMonitorTable, subscriptionId, item.Id);
+                if (entity == null)
+                {
+                    log.Info($"This is a new file");
+                    FileEntity tmpFile = new FileEntity(subscriptionId, item.Id);
+                    tmpFile.AddParametersFromDriveItem(item);
+                    // File is not in table (a new file)
+                }
+
+                log.Info($"File {item.Name} has entropy: {entropy}. Updating table.");
+                FileEntity tmpFile = new FileEntity(subscriptionId, item.Id);
+                tmpFile.AddParametersFromDriveItem(item);
+                tmpFile.Entropy = entropy;
+                tmpFile.FileMagic = magic;
+                await FileCloudTable.InsertOrReplace(FilesMonitorTable, tmpFile);
+            }
+        }*/
 
         public static async Task<bool> DoWorkOnSuspectedFiles(List<DriveItem> SuspectedFilesList, TraceWriter log)
         {
@@ -111,7 +360,7 @@ namespace DataRobotNoTableParam
             return result;
         }
 
-        public static async Task<bool> DoWorkOnChangedFiles(GraphServiceClient client, CloudTable FilesMonitorTable, List<DriveItem> ChangedFilesList, string subscriptionId, TraceWriter log)
+        /*public static async Task<bool> DoWorkOnChangedFiles(GraphServiceClient client, CloudTable FilesMonitorTable, List<DriveItem> ChangedFilesList, string subscriptionId, TraceWriter log)
         {
             bool IsAttackInPlace = false;
             int FileIsSuspicious = 0;
@@ -236,6 +485,16 @@ namespace DataRobotNoTableParam
                     {
                         entropy = EntropyCalculator.Entropy(bytesContent);
                     }
+                    if (entity != null)
+                    {
+                        // If file exists, update it's entropy:
+                        log.Info($"File {item.Name} has entropy: {entropy}. Updating table.");
+                        FileEntity tmpFile = new FileEntity(subscriptionId, item.Id);
+                        tmpFile.AddParametersFromDriveItem(item);
+                        tmpFile.Entropy = entropy;
+                        tmpFile.FileMagic = magic;
+                        await FileCloudTable.InsertOrReplace(FilesMonitorTable, tmpFile);
+                    }
                     if (EntropyValue.IsFileEncrypted(entropy))
                     {
                         FileIsSuspicious++;
@@ -289,7 +548,7 @@ namespace DataRobotNoTableParam
                 IsAttackInPlace = true;
             }
             return IsAttackInPlace;
-        }
+        }*/
 
         public static bool IsHoneypot(DriveItem item)
         {
@@ -305,16 +564,103 @@ namespace DataRobotNoTableParam
             }
             return false;
         }
-        public static byte[] ReadFully(Stream input)
+        public static byte[] ReadFully(Stream input, TraceWriter log)    
         {
-            using (MemoryStream ms = new MemoryStream())
+            //log.Info($"For debugging in ReadFully: Stream size is: {input.Length}");//TODO remove
+            input.Position = 0;
+            byte[] buffer = new byte[input.Length];
+            for (int totalBytesCopied = 0; totalBytesCopied < input.Length;)
+                totalBytesCopied += input.Read(buffer, totalBytesCopied, Convert.ToInt32(input.Length) - totalBytesCopied);
+            //log.Info($"For debugging: buffer size is: {buffer.Length}");//TODO remove
+            return buffer;
+            /*byte[] buffer = new byte[16 * 1024];
+            MemoryStream ms = new MemoryStream();
+            int read;
+            while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
             {
-                input.CopyTo(ms);
-                return ms.ToArray();
+                log.Info($"For debugging in ReadFully: read is: {read}");//TODO remove
+                ms.Write(buffer, 0, read);
             }
+            //input.CopyTo(ms);
+            log.Info($"For debugging: MemoryStream size is: {ms.Length}");//TODO remove
+            return ms.ToArray();&/
+            /*using (MemoryStream ms = new MemoryStream())
+            {
+                int read;
+                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    ms.Write(buffer, 0, read);
+                }
+                //input.CopyTo(ms);
+                log.Info($"For debugging: MemoryStream size is: {ms.Length}");//TODO remove
+                return ms.ToArray();
+            }*/
         }
 
-        public static async Task<bool> AddFilesToStorageTableIfNeeded(GraphServiceClient client, CloudTable FilesMonitorTable, string subscriptionId, List<DriveItem> NewFileItems, TraceWriter log)
+        public static async Task<bool> AddFilesToStorageTableIfNeeded(GraphServiceClient client, CloudTable FilesMonitorTable, string subscriptionId, List<FileEntity> NewFileItems, TraceWriter log)
+        {
+            bool result = true;
+
+
+            foreach (FileEntity entity in NewFileItems)
+            {
+                log.Info($"Adding file {entity.Name}, file ID {entity.FileId}, from OneDrive to storage table.");
+
+                /*
+                Stream content = entity.Content;
+                if (content != null)//TODO remove
+                {
+                    ////////////////Testing:
+                    log.Info($"(DriveItemFile.Content != null): {entity.Content != null}");
+                    using (var reader = new System.IO.StreamReader(entity.Content))
+                    {
+                        string stam = reader.ReadToEnd();
+                        log.Info($"Content is: {stam}");
+                    }
+                    //////////////////////
+                }
+                else
+                {
+                    content = await client.Me.Drive.Items[entity.FileId].Content.Request().GetAsync();
+                    entity.Content = content;
+                }
+                */
+
+                TableEntity FindResult = await FileCloudTable.Find(FilesMonitorTable, subscriptionId, entity.FileId);
+                if (FindResult == null)
+                {
+                    await FileCloudTable.Insert(FilesMonitorTable, entity);
+                    log.Info($"Added file from OneDrive to storage table: {entity.FileId}");
+                }
+                else
+                {
+                    log.Info($"File is already in storage table: {entity.FileId}. Updating it's version.");
+                    await FileCloudTable.InsertOrReplace(FilesMonitorTable, entity);
+                    result = false;
+                }
+            }
+            return result;
+        }
+
+        public static async Task<bool> RemoveFilesFromStorageTable(CloudTable FilesMonitorTable, string subscriptionId, List<string> RemoveFileIds, TraceWriter log)
+        {
+            bool result = true;
+
+            foreach (string FileID in RemoveFileIds)
+            {
+                if (await FileCloudTable.Delete(FilesMonitorTable, subscriptionId, FileID) == false)
+                {
+                    log.Info($"File isn't in the table, can't delete: {FileID}");
+                    result = false;
+                }
+                else
+                {
+                    log.Info($"File was found and removed: {FileID}");
+                }
+            }
+            return result;
+        }
+        /*public static async Task<bool> AddFilesToStorageTableIfNeeded(GraphServiceClient client, CloudTable FilesMonitorTable, string subscriptionId, List<DriveItem> NewFileItems, TraceWriter log)
         {
             bool result = true;
 
@@ -362,26 +708,7 @@ namespace DataRobotNoTableParam
                 }
             }
             return result;
-        }
-
-        public static async Task<bool> RemoveFilesFromStorageTable(CloudTable FilesMonitorTable, string subscriptionId, List<string> RemoveFileIds, TraceWriter log)
-        {
-            bool result = true;
-
-            foreach (string FileID in RemoveFileIds)
-            {
-                if (await FileCloudTable.Delete(FilesMonitorTable, subscriptionId, FileID) == false)
-                {
-                    log.Info($"File isn't in the table, can't delete: {FileID}");
-                    result = false;
-                }
-                else
-                {
-                    log.Info($"File was found and removed: {FileID}");
-                }
-            }
-            return result;
-        }
+        }*/
 
         // Request the delta stream from OneDrive to find files that have changed between notifications for this account
         public static async Task<List<DriveItem>> FindChangedAnyFilesInOneDrive(CloudTable FilesMonitorTable, string subscriptionId, StoredSubscriptionState state, GraphServiceClient client, TraceWriter log)

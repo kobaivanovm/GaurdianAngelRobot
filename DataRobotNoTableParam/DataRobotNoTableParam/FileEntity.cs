@@ -25,7 +25,7 @@ namespace DataRobotNoTableParam
             if (item.Size != null)
             {
                 long tmp = item.Size.Value;
-                this.Size = (int)tmp;//On purpose. No reason to leave it long
+                this.Size = tmp;
             }
             this.WebUrl = item.WebUrl;
             this.Description = item.Description;
@@ -76,6 +76,8 @@ namespace DataRobotNoTableParam
 
         public FileEntity() { }
 
+        public bool IsNew { get; set; }
+        public Stream Content { get; set; }
         public string LastModifiedByUserID { get; set; }
         public string LastModifiedByUserName { get; set; }
         public string CreatedByUserName { get; set; }

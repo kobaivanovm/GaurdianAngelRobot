@@ -35,11 +35,11 @@ namespace DataRobotNoTableParam
         public const int MaxProccessingSize = 4*(2^30);//4M Bytes
 
         // Main entry point for our Azure Function. Listens for webhooks from OneDrive and responds to the webhook with a 204 No Content.
-        [FunctionName("OneDriveRobotFunctionVersion2")]
+        [FunctionName("OneDriveRobotFunctionVersion4")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         //public static async Task<object> Run(HttpRequestMessage req, CloudTable syncStateTable, CloudTable tokenCacheTable, TraceWriter log)
         {
-            log.Info($"Running Version 54 (for debugging: 04:57)");
+            log.Info($"Running Version 68 (for debugging: 14:46)");
 
             log.Info($"Webhook was triggered!");
 
