@@ -6,7 +6,7 @@ using System.Web;
 
 namespace OneDriveDataRobot.Utils
 {
-    public class UserSubscriptionState : StoredSubscriptionState
+    /*public class UserSubscriptionState : StoredSubscriptionState
     {
         public UserSubscriptionState()
         {
@@ -70,7 +70,7 @@ namespace OneDriveDataRobot.Utils
         public string SubscriptionID { get; set; }
         public string WebhookID { get; set; }
         public string AccessToken { get; set; }
-        public string AuthenticationToken { get; set; }
+        public string AuthenticationToken { get; set; }*/
         /*public static UserSubscriptionState FindUser(string userId, CloudTable table)
         {
             try
@@ -98,5 +98,5 @@ namespace OneDriveDataRobot.Utils
         }*/
 
 
-    }
+    //}
 }

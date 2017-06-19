@@ -25,28 +25,28 @@ namespace DataRobotNoTableParam
         public const string StorageConnentionString = "DefaultEndpointsProtocol=https;AccountName=guardian1angel1storage;AccountKey=A4y6aQhgZcCD6eU/yjssfFDYKBmMcj7wFnmqe2euOdBrzHxs2WAzcRXtTWvvOKQn06yMAhHSHAV5KynWN32liw==;EndpointSuffix=core.windows.net";
         public const string SyncName = "syncState";
         public const string TokenCacheName = "tokenCache";
-        public const string UsersTable = "UsersManageHistory";
+        public const string UsersManageHistoryName = "UsersManageHistory";
         public const string FilesTable = "FilesMonitorHistory";
         public const int MaxNumberOfSuspects = 30;
         public const string NumberOfSuspectsPartitionKey = "GuardianAngelSuspectsPartition";
         public const string NumberOfSuspectsRowKey = "GuardianAngelSuspectsRow";
-        public const long MaxFileSize = 128*(2^30);//128MB
-        public const long MinFileSize = 512;//512 Bytes
-        public const int MaxProccessingSize = 4*(2^30);//4M Bytes
+        public static readonly long MaxFileSize = (128*(long)Math.Pow(2,20));//128MB
+        public static readonly long MinFileSize = 512;//512 Bytes
+        public static readonly long MaxProccessingSize = (128 * (long)Math.Pow(2, 20));//128MB
 
         // Main entry point for our Azure Function. Listens for webhooks from OneDrive and responds to the webhook with a 204 No Content.
-        [FunctionName("OneDriveRobotFunctionVersion4")]
+        [FunctionName("OneDriveRobotFunctionVersion8")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         //public static async Task<object> Run(HttpRequestMessage req, CloudTable syncStateTable, CloudTable tokenCacheTable, TraceWriter log)
         {
-            log.Info($"Running Version 68 (for debugging: 14:46)");
+            log.Info($"Running Version 109 (for debugging: 20:54)");
 
             log.Info($"Webhook was triggered!");
 
             CloudTable syncStateTable = CloudTableInterface.GetCloudTable(SyncName, StorageConnentionString);
             CloudTable tokenCacheTable = CloudTableInterface.GetCloudTable(TokenCacheName, StorageConnentionString);
+            CloudTable UsersTable = CloudTableInterface.GetCloudTable(UsersManageHistoryName, StorageConnentionString);
             CloudTable FilesMonitorHistoryTable = CloudTableInterface.GetCloudTable(FilesTable, StorageConnentionString);
-            //CloudTableControl UsersManageHistoryTable = new CloudTableControl(UsersTable, StorageConnentionString);
             //CloudTableControl FilesMonitorHistoryTable = new CloudTableControl(FilesTable, StorageConnentionString);
             // Handle validation scenario for creating a new webhook subscription
             Dictionary<string, string> qs = req.GetQueryNameValuePairs()
@@ -80,7 +80,7 @@ namespace DataRobotNoTableParam
                     log.Info($"Notification for subscription: '{subscriptionId}' Resource: '{resource}', clientState: '{clientState}'");
 
                     // Process the individual subscription information
-                    bool exists = await ProcessSubscriptionNotificationAsync(FilesMonitorHistoryTable, subscriptionId, syncStateTable, tokenCacheTable, log);
+                    bool exists = await ProcessSubscriptionNotificationAsync(UsersTable, FilesMonitorHistoryTable, subscriptionId, syncStateTable, tokenCacheTable, log);
                     if (!exists)
                     {
                         return req.CreateResponse(HttpStatusCode.Gone);
@@ -131,7 +131,7 @@ namespace DataRobotNoTableParam
         }
 
         // Do the work to retrieve deltas from this subscription and then find any changed Excel files
-        private static async Task<bool> ProcessSubscriptionNotificationAsync(CloudTable FilesMonitorTable, string subscriptionId, CloudTable syncStateTable, CloudTable tokenCacheTable, TraceWriter log)
+        private static async Task<bool> ProcessSubscriptionNotificationAsync(CloudTable UsersTable, CloudTable FilesMonitorTable, string subscriptionId, CloudTable syncStateTable, CloudTable tokenCacheTable, TraceWriter log)
         {
             // Retrieve our stored state from an Azure Table
             StoredSubscriptionState state = StoredSubscriptionState.Open(subscriptionId, syncStateTable);
@@ -151,7 +151,7 @@ namespace DataRobotNoTableParam
 
             // Query for items that have changed since the last notification was received
 
-            bool Result = await FileMonitorOneDrive.ProccessChangesInFiles(FilesMonitorTable, client, state, subscriptionId, syncStateTable, tokenCacheTable, log);
+            bool Result = await FileMonitorOneDrive.ProccessChangesInFiles(state.SignInUserId, UsersTable, FilesMonitorTable, client, state, subscriptionId, syncStateTable, tokenCacheTable, log);
             return Result;//It's always true, has nothing to do with actuall outcome
 
             //*** Changes should be from here ***
@@ -218,7 +218,106 @@ namespace DataRobotNoTableParam
                 TableResult results = table.Execute(retrieve);
                 return (StoredSubscriptionState)results.Result;
             }
+            /////////////////////////////
+            public static StoredSubscriptionState FindUser(string userId, CloudTable table)
+            {
+                try
+                {
+                    var partitionFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "AAA");
+                    var userIdFilter = TableQuery.GenerateFilterCondition("SignInUserId", QueryComparisons.Equal, userId);
+                    string filter = TableQuery.CombineFilters(partitionFilter, TableOperators.And, userIdFilter);
+
+                    var query = new TableQuery<StoredSubscriptionState>().Where(filter).Take(1);
+                    var matchingEntry = table.ExecuteQuery(query).FirstOrDefault();
+                    return matchingEntry;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error while finding existing user subscription: {ex.Message}.");
+                }
+                return null;
+            }
+            public void AddAllFieldsFromUser(Microsoft.Graph.User newUser)
+            {
+                this.Email = newUser.Mail;
+                this.FirstName = newUser.GivenName;
+                this.LastName = newUser.Surname;
+            }
+            public string Email { get; set; }
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public string SubscriptionID { get; set; }
+            public string WebhookID { get; set; }
+            public string AccessToken { get; set; }
+            public string AuthenticationToken { get; set; }
+            ////////////////////////////
         }
+        /*public class UserSubscriptionState : StoredSubscriptionState
+        {
+            public UserSubscriptionState()
+            {
+                this.PartitionKey = "PartKey";
+            }
+            internal void Delete(CloudTable syncStateTable)
+            {
+                try
+                {
+                    TableOperation remove = TableOperation.Delete(this);
+                    syncStateTable.Execute(remove);
+                }
+                catch { }
+            }
+            public new static UserSubscriptionState CreateNew(string subscriptionId)
+            {
+                var newState = new UserSubscriptionState();
+                if (newState.PartitionKey == null)
+                {
+                    newState.PartitionKey = "PartKey";
+                }
+                newState.RowKey = subscriptionId;
+                newState.SubscriptionId = subscriptionId;
+                newState.SubscriptionID = subscriptionId;
+                return newState;
+            }
+            public new void Insert(CloudTable table)
+            {
+                TableOperation insert = TableOperation.InsertOrReplace(this);
+                table.Execute(insert);
+            }
+
+            public static UserSubscriptionState FindUser(string SignInUserId, CloudTable table)
+            {
+                try
+                {
+                    var partitionFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "PartKey");
+                    var userIdFilter = TableQuery.GenerateFilterCondition("SignInUserId", QueryComparisons.Equal, SignInUserId);
+                    string filter = TableQuery.CombineFilters(partitionFilter, TableOperators.And, userIdFilter);
+
+                    var query = new TableQuery<UserSubscriptionState>().Where(filter).Take(1);
+                    var matchingEntry = table.ExecuteQuery(query).FirstOrDefault();
+                    return matchingEntry;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error while finding existing user subscription: {ex.Message}.");
+                }
+                return null;
+            }
+            public void AddAllFieldsFromUser(Microsoft.Graph.User newUser)
+            {
+                this.Email = newUser.Mail;
+                this.FirstName = newUser.GivenName;
+                this.LastName = newUser.Surname;
+            }
+
+            public string Email { get; set; }
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public string SubscriptionID { get; set; }
+            public string WebhookID { get; set; }
+            public string AccessToken { get; set; }
+            public string AuthenticationToken { get; set; }
+        }*/
 
         /// <summary>
         /// Keep track of file specific information for a short period of time, so we can avoid repeatedly acting on the same file

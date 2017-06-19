@@ -97,6 +97,22 @@ namespace OneDriveDataRobot.Utils
                 syncStateTable.Execute(remove);
             } catch { }
         }
+
+        //////////////////////////////////////////
+        public void AddAllFieldsFromUser(Microsoft.Graph.User newUser)
+        {
+            this.Email = newUser.Mail;
+            this.FirstName = newUser.GivenName;
+            this.LastName = newUser.Surname;
+        }
+        public string Email { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string SubscriptionID { get; set; }
+        public string WebhookID { get; set; }
+        public string AccessToken { get; set; }
+        public string AuthenticationToken { get; set; }
+        //////////////////////////////////////////
     }
 
 }

@@ -105,11 +105,11 @@ namespace OneDriveDataRobot.Controllers
 
         public static void InsertUserIfNotIn(Microsoft.Graph.User newUser, string AccessToken, string SignInUserId, string WebhookID)
         {
-            var UserSubscription = UserSubscriptionState.FindUser(SignInUserId, AzureTableContext.Default.UsersTable);
+            var UserSubscription = StoredSubscriptionState.FindUser(SignInUserId, AzureTableContext.Default.UsersTable);
             if (UserSubscription == null)
             {
                 //UserSubscription = UserSubscriptionState.CreateNew(TmpAccessToken, createdSubscription.Id);
-                UserSubscription = UserSubscriptionState.CreateNew(SignInUserId);
+                UserSubscription = StoredSubscriptionState.CreateNew(SignInUserId);
                 UserSubscription.AddAllFieldsFromUser(newUser);
                 UserSubscription.AccessToken = AccessToken;
                 UserSubscription.WebhookID = WebhookID;
@@ -118,7 +118,7 @@ namespace OneDriveDataRobot.Controllers
             else if (UserSubscription.PartitionKey == null || UserSubscription.RowKey == null)
             {
                 //UserSubscription = UserSubscriptionState.CreateNew(TmpAccessToken, createdSubscription.Id);
-                UserSubscription = UserSubscriptionState.CreateNew(SignInUserId);
+                UserSubscription = StoredSubscriptionState.CreateNew(SignInUserId);
                 UserSubscription.AddAllFieldsFromUser(newUser);
                 UserSubscription.AccessToken = AccessToken;
                 UserSubscription.WebhookID = WebhookID;
@@ -127,11 +127,11 @@ namespace OneDriveDataRobot.Controllers
         }
         public static void DeleteUserFromTable(string SignInUserId)
         {
-            var UserSubscription = UserSubscriptionState.FindUser(SignInUserId, AzureTableContext.Default.UsersTable);
+            var UserSubscription = StoredSubscriptionState.FindUser(SignInUserId, AzureTableContext.Default.UsersTable);
             if (UserSubscription == null)
             {
                 // User is not in table.
-                UserSubscription = UserSubscriptionState.CreateNew(SignInUserId);
+                UserSubscription = StoredSubscriptionState.CreateNew(SignInUserId);
                 //return;
             }
             UserSubscription.Delete(AzureTableContext.Default.UsersTable);

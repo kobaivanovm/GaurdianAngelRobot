@@ -37,13 +37,16 @@ namespace DataRobotNoTableParam
                     this.LastModifiedByUserID = item.LastModifiedBy.User.Id;
                 }
             }
-            if (item.CreatedByUser != null)
+            if (item.CreatedBy != null)
             {
-                this.CreatedByUserName = item.CreatedByUser.DisplayName;
-                this.CreatedByUserID = item.CreatedByUser.Id;
+                if (item.CreatedBy.User != null)
+                {
+                    this.CreatedByUserName = item.CreatedBy.User.DisplayName;
+                    this.CreatedByUserID = item.CreatedBy.User.Id;
+                }
             }
-            this.CreatedByUser = item.CreatedByUser;
-            this.LastModifiedByUser = item.LastModifiedByUser;
+            //this.CreatedByUser = item.CreatedByUser;
+            //this.LastModifiedByUser = item.LastModifiedByUser;
             if (item.File != null)
             {
                 this.IsFile = true;
@@ -93,6 +96,8 @@ namespace DataRobotNoTableParam
         //public System.Collections.ObjectModel.Collection<bool> FileMagicBytes { get; set; }
         public string Description { get; set; }
         public string WebUrl { get; set; }
+        //public string UserName { get; set; }
+        //public string UserMail { get; set; }
         public User CreatedByUser { get; set; }
         public User LastModifiedByUser { get; set; }
         //public DateTimeOffset? LastModifiedDateTime { get; set; }
