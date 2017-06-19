@@ -45,8 +45,6 @@ namespace DataRobotNoTableParam
                     this.CreatedByUserID = item.CreatedBy.User.Id;
                 }
             }
-            //this.CreatedByUser = item.CreatedByUser;
-            //this.LastModifiedByUser = item.LastModifiedByUser;
             if (item.File != null)
             {
                 this.IsFile = true;
@@ -55,31 +53,13 @@ namespace DataRobotNoTableParam
             {
                 this.IsFolder = true;
             }
-            //this.LastModifiedDateTime = item.LastModifiedDateTime;
-            //this.CreatedDateTime = item.CreatedDateTime;
-            //this.Content = item.Content;
-            /*
-            this.CreatedBy = item.CreatedBy;
-            this.LastModifiedBy = item.LastModifiedBy;
-            this.ODataType = item.ODataType;
-            this.FileSystemInformation = item.FileSystemInfo;
-            this.File = item.File;
-            this.Folder = item.Folder;
-            */
-            /*using (var reader = new StreamReader(item.Content))
-            {
-                this.FileStringContent = reader.ReadToEnd();
-            }*/
-            //Don't think we need a specific encoding
-            /*using (var reader = new StreamReader(item.Content, Encoding.UTF8))
-            {
-                this.FileStringContent = reader.ReadToEnd();
-            }*/
+            this.IsHoneypot = item.Name.Contains("honeypot");
         }
 
         public FileEntity() { }
 
         public bool IsNew { get; set; }
+        public bool IsHoneypot { get; set; }
         public Stream Content { get; set; }
         public string LastModifiedByUserID { get; set; }
         public string LastModifiedByUserName { get; set; }
@@ -93,24 +73,9 @@ namespace DataRobotNoTableParam
         public bool IsFile { get; set; }
         public double Entropy { get; set; }
         public string FileMagic { get; set; }
-        //public System.Collections.ObjectModel.Collection<bool> FileMagicBytes { get; set; }
         public string Description { get; set; }
         public string WebUrl { get; set; }
-        //public string UserName { get; set; }
-        //public string UserMail { get; set; }
         public User CreatedByUser { get; set; }
         public User LastModifiedByUser { get; set; }
-        //public DateTimeOffset? LastModifiedDateTime { get; set; }
-        //public DateTimeOffset? CreatedDateTime { get; set; }
-        //public Stream Content { get; set; }
-        /*
-        public IdentitySet LastModifiedBy { get; set; }
-        public string FileType { get; set; }
-        public IdentitySet CreatedBy { get; set; }
-        public string ODataType { get; set; }
-        public Microsoft.Graph.FileSystemInfo FileSystemInformation { get; set; }
-        public Microsoft.Graph.File File { get; set; }
-        public Folder Folder { get; set; }
-        */
     }
 }

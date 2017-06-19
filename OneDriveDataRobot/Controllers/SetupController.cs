@@ -167,6 +167,9 @@ namespace OneDriveDataRobot.Controllers
                 return Ok(new DataRobotSetup { Success = false, Error = ex.Message });
             }
 
+            // Remove user from users table:
+            DeleteUserFromTable(tokens.SignInUserId);
+
             // See if the robot was previous activated for the signed in user.
             var robotSubscription = StoredSubscriptionState.FindUser(tokens.SignInUserId, AzureTableContext.Default.SyncStateTable);
 
@@ -184,7 +187,9 @@ namespace OneDriveDataRobot.Controllers
 
             // Remove the robotSubscription information
             robotSubscription.Delete(AzureTableContext.Default.SyncStateTable);
+
             await HoneypotHelper.DeleteAllHoneypotsAsync(client);
+
             return Ok(new DataRobotSetup { Success = true, Error = "The robot was been deactivated from your account." });
         }
     }

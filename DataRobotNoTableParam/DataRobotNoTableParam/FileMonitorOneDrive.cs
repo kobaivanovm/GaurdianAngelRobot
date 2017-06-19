@@ -63,9 +63,10 @@ namespace DataRobotNoTableParam
             if (HarmedDriveItems.Count > 0)
             {
                 // Do work on suspected files to be encrypted. Do not add them to storage!
-                bool IsBeingAttacked = await DoWorkOnSuspectedFiles(HarmedDriveItems, log);
+                bool IsBeingAttacked = await DoWorkOnSuspectedFiles(client, HarmedDriveItems, log);
                 if (IsBeingAttacked == true)
                 {
+                    log.Info($"Suspicious file was foind to be under attack.");
                     // Do something to stop it.
                     SendEmailToUser(UserSubscriptionID, UsersTable, log);
                 }
@@ -88,6 +89,7 @@ namespace DataRobotNoTableParam
             FuntionsResults Results = await DoWorkOnChangedFiles(client, FilesMonitorTable, ChangedFilesDriveItems, subscriptionId, log);
             if (Results.IsBeingAttacked == true)
             {
+                log.Info($"While checking the files changed on the user, atleast one file was found to be under attack, or too many files were suspected of an attack");
                 // Do something to stop it.
                 SendEmailToUser(UserSubscriptionID, UsersTable, log);
             }
@@ -178,20 +180,28 @@ namespace DataRobotNoTableParam
                     log.Info($"Checking magic number:");
                     var inspector = new FileFormatInspector();
                     var format = inspector.DetermineFileFormat(content);
-                    var magic = format.Extension;
-                    var extension = Path.GetExtension(item.Name);
-                    if (magic == extension.Substring(1))//ignore dot
+                    string magic;
+                    if (format != null) //Could be text which sometimes has no magic
                     {
-                        log.Info($"Both magic and extension are: {extension}");
+                        magic = format.Extension;
+                        var extension = Path.GetExtension(item.Name);
+                        if (magic == extension.Substring(1))//ignore dot
+                        {
+                            log.Info($"Both magic and extension are: {extension}");
+                        }
+                        else
+                        {
+                            log.Info($"File magic is {magic}, while file extension is {extension}. Suspicious!");
+                            FileIsSuspicious++;
+                            continue;
+                            //maby break if not only suspicious.
+                        }
                     }
                     else
                     {
-                        log.Info($"File magic is {magic}, while file extension is {extension}. Suspicious!");
-                        FileIsSuspicious++;
-                        continue;
-                        //maby break if not only suspicious.
+                        log.Info($"File magic not found, assuming it's text. The extension: {Path.GetExtension(item.Name)}");
+                        magic = Path.GetExtension(item.Name).Substring(1);
                     }
-
                     double entropy = (-1);//default value.
                     double previousEntropy = (-1);//default value.
 
@@ -302,27 +312,32 @@ namespace DataRobotNoTableParam
             return Results;
         }
 
-        public static async Task<bool> DoWorkOnSuspectedFiles(List<DriveItem> SuspectedFilesList, TraceWriter log)
+        public static async Task<bool> DoWorkOnSuspectedFiles(GraphServiceClient client, List<DriveItem> SuspectedFilesList, TraceWriter log)
         {
             var inspector = new FileFormatInspector();
+            FileTypesList filesTypes = new FileTypesList();
+            List<string> RansomwareExtensions = filesTypes.GetListOfRansomwares();
             foreach (DriveItem item in SuspectedFilesList)
             {
-                if (item.Content == null)
+                Stream content = item.Content;
+                if (content == null)
                 {
+                    //continue;
+                    content = await client.Me.Drive.Items[item.Id].Content.Request().GetAsync();
+                }
+                if (content == null)
+                {
+                    log.Info($"Item content should be null, but it is. This happened while checking suspicious files.");
                     continue;
                 }
-                else
+                var format = inspector.DetermineFileFormat(content);
+                if (format == null && RansomwareExtensions.Contains(Path.GetExtension(item.Name)) == true)
                 {
-                    var format = inspector.DetermineFileFormat(item.Content);
-                    if (format == null)
-                    {
-                        return false;
-                    }
+                    return true;
                 }
-            }
-            //Send Email to user or shut OneDrive down.
 
-            return true;
+            }
+            return false;
         }
 
         public static bool IsHoneypot(DriveItem item)
