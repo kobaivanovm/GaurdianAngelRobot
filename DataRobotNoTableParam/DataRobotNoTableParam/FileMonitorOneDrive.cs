@@ -51,7 +51,6 @@ namespace DataRobotNoTableParam
                     log.Info($"This might be encrypted ecrypted by a ransomware!!!");
                     // This file is suspected to be ransomware encrypted:
                     HarmedDriveItems.Add(item);
-                    log.Info($"For debugging 1");
                     continue;
                 }
                 else if (!(TypeList.Contains(FileExtension)))
@@ -64,49 +63,16 @@ namespace DataRobotNoTableParam
             if (HarmedDriveItems.Count > 0)
             {
                 // Do work on suspected files to be encrypted. Do not add them to storage!
-                log.Info($"For debugging 3");
                 bool IsBeingAttacked = await DoWorkOnSuspectedFiles(HarmedDriveItems, log);
-                log.Info($"For debugging 4");
                 if (IsBeingAttacked == true)
                 {
-                    log.Info($"For debugging 5");
                     // Do something to stop it.
-                    log.Info($"HarmedDriveItems size: {HarmedDriveItems.Count}");
-                    log.Info($"ChangedFilesDriveItems size: {ChangedFilesDriveItems.Count}");
-                    //DriveItem tmp = HarmedDriveItems.FirstOrDefault();
-                    //DriveItem tmp = ChangedFilesDriveItems.First(x => x.Deleted == null);
-                    /*DriveItem tmp = HarmedDriveItems.First(x => x.Deleted == null);
-                    log.Info($"tmp ID: {tmp.Id}");
-                    log.Info($"For debugging- tmp.CreatedBy.User.Id is null => {tmp == null}");
-                    log.Info($"For debugging- tmp.CreatedBy is null => {tmp.CreatedBy == null}");
-                    log.Info($"For debugging- tmp.CreatedBy.User is null => {tmp.CreatedBy.User == null}");
-                    log.Info($"For debugging- tmp.CreatedBy.User.Id is null => {tmp.CreatedBy.User.Id == null}");
-                    log.Info($"For debugging- tmp.CreatedBy.User.DisplayName is null => {tmp.CreatedBy.User.DisplayName == null}");
-                    log.Info($"For debugging- tmp.CreatedBy.User.DisplayName => {tmp.CreatedBy.User.DisplayName}");
-                    log.Info($"For debugging- tmp.CreatedBy.User.Id is => {tmp.CreatedBy.User.Id}");
-                    log.Info($"For debugging- tmp.LastModifiedBy is null => {(tmp.LastModifiedBy == null)}");
-                    log.Info($"For debugging- tmp.LastModifiedBy.User is null => {(tmp.LastModifiedBy.User == null)}");
-                    log.Info($"For debugging- tmp.LastModifiedBy.User.Id is null => {(tmp.LastModifiedBy.User.Id == null)}");
-                    log.Info($"For debugging- tmp.LastModifiedBy.User.Id is  => {(tmp.LastModifiedBy.User.Id)}");*/
-                    //LocalUserEntity entityCreatedBy = await LocalUserEntity.FindLocalUser(UsersTable, UserSubscriptionID);
-                    //LocalUserEntity entityLastModifiedBy = await LocalUserEntity.FindLocalUser(UsersTable, UserSubscriptionID);
-                    StoredSubscriptionState entityCreatedBy = StoredSubscriptionState.FindUser(UserSubscriptionID, UsersTable);
-                    log.Info($"For debugging- UserSubscriptionID: {UserSubscriptionID}");
-                    log.Info($"For debugging- entityCreatedBy is null =>: {(entityCreatedBy == null)}");
-                    //LocalUserEntity entityLastModifiedBy = UserSubscriptionState.FindUser(UserSubscriptionID, UsersTable);
-
-                    //TableEntity entityCreatedBy = await FileCloudTable.Find(UsersTable, "PartKey", tmp.CreatedBy.User.Id);
-                    //TableEntity entityLastModifiedBy = await FileCloudTable.Find(UsersTable, "PartKey", tmp.LastModifiedBy.User.Id);
-                    log.Info($"For debugging- is tmp null: {(entityCreatedBy == null || entityCreatedBy == null)}");
-                    EmailSender.SendToTwoUsers(entityCreatedBy, entityCreatedBy);
-                    //SendEmailToUser(entityCreatedBy, entityLastModifiedBy, log);
-                    log.Info($"For debugging 6");
+                    SendEmailToUser(UserSubscriptionID, UsersTable, log);
                 }
 
                 // Remove suspected items from list:
                 foreach (DriveItem item in HarmedDriveItems)
                 {
-                    log.Info($"For debugging 2");
                     // Intentionally another foreach to avoid exceptions.
                     ChangedFilesDriveItems.Remove(item);
                 }
@@ -123,11 +89,7 @@ namespace DataRobotNoTableParam
             if (Results.IsBeingAttacked == true)
             {
                 // Do something to stop it.
-                DriveItem tmp = ChangedFilesDriveItems.FirstOrDefault(x => x.Deleted == null);
-                //LocalUserEntity entityCreatedBy = await LocalUserEntity.FindLocalUser(UsersTable, tmp.CreatedBy.User.Id);
-                //LocalUserEntity entityLastModifiedBy = await LocalUserEntity.FindLocalUser(UsersTable, tmp.CreatedBy.User.Id);
-                //EmailSender.SendToTwoUsers(entityCreatedBy, entityLastModifiedBy);
-                //SendEmailToUser(ChangedFilesDriveItems.FirstOrDefault<DriveItem>(), log);
+                SendEmailToUser(UserSubscriptionID, UsersTable, log);
             }
 
             // Add to storage if needed
@@ -136,39 +98,10 @@ namespace DataRobotNoTableParam
             return result;
         }
 
-        public static void SendEmailToUser(LocalUserEntity lastModifiedBy, LocalUserEntity createdBy, TraceWriter log)
+        public static void SendEmailToUser(string UserSubscriptionID, CloudTable UsersTable, TraceWriter log)
         {
-            //User lastModifiedByUser
-            /*if (item == null)
-            {
-                log.Info($"For debugging: item is null");
-            }
-            else
-            {
-                if (item.CreatedBy == null)
-                {
-                    log.Info($"For debugging: CreatedByUser is null");
-                }
-                else
-                {
-                    if (item.CreatedBy == null)
-                    {
-                        log.Info($"For debugging: CreatedByUser.Mail is null");
-                    }
-                }
-                if (item.LastModifiedByUser == null)
-                {
-                    log.Info($"For debugging: LastModifiedByUser is null");
-                }
-                else
-                {
-                    if (item.LastModifiedByUser.Mail == null)
-                    {
-                        log.Info($"For debugging: LastModifiedByUser.Mail is null");
-                    }
-                }
-            }*/
-            //EmailSender.SendToTwoUsers(CreatedByUser, ModifiedByUser);
+            StoredSubscriptionState entityCreatedBy = StoredSubscriptionState.FindUser(UserSubscriptionID, UsersTable);
+            EmailSender.SendToTwoUsers(entityCreatedBy, entityCreatedBy);
         }
 
         public static async Task<FuntionsResults> DoWorkOnChangedFiles(GraphServiceClient client, CloudTable FilesMonitorTable, List<DriveItem> ChangedFilesList, string subscriptionId, TraceWriter log)
@@ -276,11 +209,8 @@ namespace DataRobotNoTableParam
                     {
                         log.Info($"Size is too large.");
                         // Check only a small part of file.
-                        //log.Info($"For debugging: content Stream Size: {content.Length}");//TODO remove
                         int ContentSize = bytesContent.Length;
-                        //log.Info($"For debugging: Content Size: {ContentSize}");//TODO remove
                         int FileIntervals = ContentSize / 16;
-                        //log.Info($"For debugging: File Intervals: {FileIntervals}");//TODO remove
                         byte[] firstBytes = new byte[FileIntervals];
                         Array.Copy(bytesContent, 0, firstBytes, 0, FileIntervals);
                         byte[] secondBytes = new byte[FileIntervals];
@@ -339,7 +269,6 @@ namespace DataRobotNoTableParam
                         {
                             log.Info($"Reached MaxNumberOfSuspects");
                             // An attack is under way
-                            //IsAttackInPlace = true;
                             Results.IsBeingAttacked = true;
                             break;
                         }
@@ -347,7 +276,6 @@ namespace DataRobotNoTableParam
                         {
                             log.Info($"Found 3 suspicious attributes. Assume an attacks is underway.");
                             // An attack is under way
-                            //IsAttackInPlace = true;
                             Results.IsBeingAttacked = true;
                             break;
                         }
@@ -356,7 +284,6 @@ namespace DataRobotNoTableParam
                         log.Info($"For debugging: tried to insert");
                         if (SuspectsNumber >= MaxNumberOfSuspects)
                         {
-                            //IsAttackInPlace = true;
                             Results.IsBeingAttacked = true;
                             break;
                         }
@@ -366,7 +293,6 @@ namespace DataRobotNoTableParam
                 catch (Exception ex)
                 {
                     log.Info($"Exception processing file: {ex.Message}");
-                    //IsAttackInPlace = false;
                 }
             }
             if (SuspectsNumber >= MaxNumberOfSuspects)

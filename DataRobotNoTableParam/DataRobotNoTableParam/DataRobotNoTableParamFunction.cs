@@ -39,7 +39,7 @@ namespace DataRobotNoTableParam
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         //public static async Task<object> Run(HttpRequestMessage req, CloudTable syncStateTable, CloudTable tokenCacheTable, TraceWriter log)
         {
-            log.Info($"Running Version 110 (for debugging: 21:19)");
+            log.Info($"Running Version 112 (for debugging: 21:32)");
 
             log.Info($"Webhook was triggered!");
 
