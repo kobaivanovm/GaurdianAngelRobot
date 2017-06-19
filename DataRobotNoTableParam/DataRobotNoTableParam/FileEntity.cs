@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DataRobotNoTableParam
 {
-    class FileEntity : TableEntity
+    public class FileEntity : TableEntity
     {
         public FileEntity(string UserSubscriptionID, string FileID)
         {
@@ -25,7 +25,7 @@ namespace DataRobotNoTableParam
             if (item.Size != null)
             {
                 long tmp = item.Size.Value;
-                this.Size = (int)tmp;//On purpose. No reason to leave it long
+                this.Size = tmp;
             }
             this.WebUrl = item.WebUrl;
             this.Description = item.Description;
@@ -37,13 +37,16 @@ namespace DataRobotNoTableParam
                     this.LastModifiedByUserID = item.LastModifiedBy.User.Id;
                 }
             }
-            if (item.CreatedByUser != null)
+            if (item.CreatedBy != null)
             {
-                this.CreatedByUserName = item.CreatedByUser.DisplayName;
-                this.CreatedByUserID = item.CreatedByUser.Id;
+                if (item.CreatedBy.User != null)
+                {
+                    this.CreatedByUserName = item.CreatedBy.User.DisplayName;
+                    this.CreatedByUserID = item.CreatedBy.User.Id;
+                }
             }
-            this.CreatedByUser = item.CreatedByUser;
-            this.LastModifiedByUser = item.LastModifiedByUser;
+            //this.CreatedByUser = item.CreatedByUser;
+            //this.LastModifiedByUser = item.LastModifiedByUser;
             if (item.File != null)
             {
                 this.IsFile = true;
@@ -76,6 +79,8 @@ namespace DataRobotNoTableParam
 
         public FileEntity() { }
 
+        public bool IsNew { get; set; }
+        public Stream Content { get; set; }
         public string LastModifiedByUserID { get; set; }
         public string LastModifiedByUserName { get; set; }
         public string CreatedByUserName { get; set; }
@@ -88,8 +93,11 @@ namespace DataRobotNoTableParam
         public bool IsFile { get; set; }
         public double Entropy { get; set; }
         public string FileMagic { get; set; }
+        //public System.Collections.ObjectModel.Collection<bool> FileMagicBytes { get; set; }
         public string Description { get; set; }
         public string WebUrl { get; set; }
+        //public string UserName { get; set; }
+        //public string UserMail { get; set; }
         public User CreatedByUser { get; set; }
         public User LastModifiedByUser { get; set; }
         //public DateTimeOffset? LastModifiedDateTime { get; set; }

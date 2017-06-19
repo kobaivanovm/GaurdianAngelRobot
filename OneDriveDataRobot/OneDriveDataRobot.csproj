@@ -110,6 +110,10 @@
       <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.3.2.1\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=2.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Unofficial.Microsoft.WindowsAzure.ServiceRuntime.2.9.0.0\lib\net45\Microsoft.WindowsAzure.ServiceRuntime.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.WindowsAzure.Storage, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAzure.Storage.7.0.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
       <Private>True</Private>
@@ -239,10 +243,6 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\SetupController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="FileSignatures\FileFormat.cs" />
-    <Compile Include="FileSignatures\FileFormatInspector.cs" />
-    <Compile Include="FileSignatures\FileFormatLocator.cs" />
-    <Compile Include="FileSignatures\IFileFormatInspector.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -255,6 +255,7 @@
     <Compile Include="Utils\ActionHelpers.cs" />
     <Compile Include="Utils\AzureStorage\AzureTableContext.cs" />
     <Compile Include="Utils\AzureStorage\AzureTableTokenCache.cs" />
+    <Compile Include="Utils\EmailSender.cs" />
     <Compile Include="Utils\HoneypotHelper.cs" />
     <Compile Include="Utils\HttpHelper.cs" />
     <Compile Include="Utils\OneDriveHelper.cs" />
@@ -272,6 +273,7 @@
     <Content Include="Content\LoadingSpinner.css" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <None Include="Properties\PublishProfiles\OneDriveDataRobotVersion1 - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
