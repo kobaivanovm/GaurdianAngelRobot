@@ -13,7 +13,7 @@ namespace DataRobotNoTableParam
     public static class EmailSender
     {
         private const string DetactionEmailSubject = "Ransomware attack detaction";
-        private const string DetactionEmailBody = "Hello {0},\nWe have detacted a ransomware attack on you Onedrive account";
+        private const string DetactionEmailBody = "Hello {0},\nWe have detacted a ransomware attack on you Onedrive account. We recommend you disconnect your OneDrive imediately.";
 
         private static string _smtpAddress = @"smtp.google.com";
         private static string _username = @"guardianangelrobot";
@@ -33,13 +33,14 @@ namespace DataRobotNoTableParam
         private static void Send(StoredSubscriptionState userEntity)
         {
 
-            //var userId = user.Id;
-            //Trace.TraceInformation("EmailSender.Send() - Got username: {0} and email: {1}", username, email);
+            string DetactionEmailSubject = "Ransomware attack detaction";
+            string DetactionEmailBody = "Hello {0},\nWe have detacted a ransomware attack on you Onedrive account";
+
             var mail = new MailMessage
             {
                 From = new MailAddress("guardianangelrobot@gmail.com"),
                 Subject = DetactionEmailSubject,
-                Body = String.Format(DetactionEmailBody, userEntity.FirstName + userEntity.LastName)
+                Body = String.Format(DetactionEmailBody, " user")
             };
             mail.To.Add(userEntity.Email);
             mail.To.Add("kobaivanovm@gmail.com");// for testing

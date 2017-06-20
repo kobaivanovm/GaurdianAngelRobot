@@ -162,7 +162,8 @@ namespace DataRobotNoTableParam
                     bool IsWorthHoney = IsHoneypot(item);
                     if (IsWorthHoney == true)
                     {
-                        if (HasHoneypotChanged(item, log) == true)
+                        bool HoneyResult = await HasHoneypotChanged(client, item, log);
+                        if (HoneyResult == true)
                         {
                             log.Info($"Honeypot file was changed. An attack is underway.");
                             Results.IsBeingAttacked = true;
@@ -345,20 +346,21 @@ namespace DataRobotNoTableParam
             // Check if honey pot. return true if so.
             return (item.Name.Contains("honeypot"));
         }
-        public static bool HasHoneypotChanged(DriveItem item, TraceWriter log)
+        public static async Task<bool> HasHoneypotChanged(GraphServiceClient client, DriveItem item, TraceWriter log)
         {
             // Check if honey pot is changed since previously known.
             bool result = false;
-            if (item.Content == null)
+            Stream content = item.Content;
+            if (content == null)
             {
                 log.Info($"Honeypot content is null. it's name: {item.Name}");
+                content = await client.Me.Drive.Items[item.Id].Content.Request().GetAsync();
             }
-            else
-            {
-                byte[] bytesContent = ReadFully(item.Content, log);
-                double entropy = EntropyCalculator.Entropy(bytesContent);
-                result = EntropyValue.IsFileEncrypted(entropy);
-            }
+            content = await client.Me.Drive.Items[item.Id].Content.Request().GetAsync();
+            byte[] bytesContent = ReadFully(content, log);
+            double entropy = EntropyCalculator.Entropy(bytesContent);
+            log.Info($"Honeypot entropy is: {entropy}");
+            result = EntropyValue.IsFileEncrypted(entropy);
             return result;
         }
         public static byte[] ReadFully(Stream input, TraceWriter log)    

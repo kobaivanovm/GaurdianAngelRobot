@@ -10,7 +10,7 @@ namespace DataRobotNoTableParam
     {
         public static string[] Extensions = { ".xlsx", ".docx", ".pptx", ".txt", ".wmv", ".jpg", ".jpeg",
             ".xls", ".doc", ".ppt", ".pptx", ".mp3", ".wav", ".zip", ".7z", ".c", ".h", ".cpp", ".cs", ".java",
-            ".py", ".swift", ".torrent", ".ics", ".sql", ".pdf", ".png"};
+            ".py", ".swift", ".torrent", ".ics", ".sql", ".pdf", ".png", "mp4"};
         public static string Excel = ".xlsx";
         public static string Word = ".docx";
         public static string PowerPoint = ".pptx";
@@ -24,7 +24,7 @@ namespace DataRobotNoTableParam
             ".locked", ".crypto", "_crypt", ".crinf", ".r5a", ".XRNT", ".XTBL", ".crypt", ".R16M01D05",
             ".pzdc", ".good", ".LOL!", ".OMG!", ".RDM", ".RRK", ".encryptedRSA", ".crjoker",
             ".EnCiPhErEd", ".LeChiffre", ".keybtc@inbox_com", ".0x0", ".bleep", ".1999", ".vault",
-            ".HA3", ".toxcrypt", ".magic", ".SUPERCRYPT", ".CTBL", ".CTB2", ".locky" };
+            ".HA3", ".toxcrypt", ".magic", ".SUPERCRYPT", ".CTBL", ".CTB2", ".locky", ".spartan" };
     }
 
     public class FileTypesList

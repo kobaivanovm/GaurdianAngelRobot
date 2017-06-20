@@ -273,6 +273,7 @@
     <Content Include="Content\LoadingSpinner.css" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <None Include="Properties\PublishProfiles\OneDriveDataRobot20170620032925 - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\OneDriveDataRobotVersion1 - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
