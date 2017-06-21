@@ -275,6 +275,8 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <None Include="Properties\PublishProfiles\OneDriveDataRobot20170620032925 - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\OneDriveDataRobotVersion1 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\RobotVersion1 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\RobotVersion2 - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />

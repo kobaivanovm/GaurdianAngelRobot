@@ -17,12 +17,12 @@ namespace DataRobotNoTableParam
 {
     public static class DataRobotNoTableParamFunction
     {
-        public const string TriggerWord = "!odbot";
-        public const string idaClientId = "6b03b509-64e8-4773-99a3-0df397284fd7";
-        public const string idaClientSecret = "I7FvOsEeO9+Om58MkHa5/jcLznGLRbUw1QBfw/aF39s=";
+        //public const string TriggerWord = "!odbot";
+        public const string idaClientId = "[Client ID]";
+        public const string idaClientSecret = "[Client Secret]";
         public const string idaAuthorityUrl = "https://login.microsoftonline.com/common";
         public const string idaMicrosoftGraphUrl = "https://graph.microsoft.com";
-        public const string StorageConnentionString = "DefaultEndpointsProtocol=https;AccountName=guardian1angel1storage;AccountKey=A4y6aQhgZcCD6eU/yjssfFDYKBmMcj7wFnmqe2euOdBrzHxs2WAzcRXtTWvvOKQn06yMAhHSHAV5KynWN32liw==;EndpointSuffix=core.windows.net";
+        public const string StorageConnentionString = "[Storage Private Connection String]";
         public const string SyncName = "syncState";
         public const string TokenCacheName = "tokenCache";
         public const string UsersManageHistoryName = "UsersManageHistory";
@@ -30,17 +30,19 @@ namespace DataRobotNoTableParam
         public const int MaxNumberOfSuspects = 30;
         public const string NumberOfSuspectsPartitionKey = "GuardianAngelSuspectsPartition";
         public const string NumberOfSuspectsRowKey = "GuardianAngelSuspectsRow";
+        public const string GmailUserName = "[Gmail user name]";
+        public const string ServiceGmail = GmailUserName + "@gmail.com";//The email you want the alerts to be sent from.
+        public const string GmailPassword = "[Your Gmail password]";
+        public const string SmtpAddress = "smtp.google.com";
         public static readonly long MaxFileSize = (128*(long)Math.Pow(2,20));//128MB
         public static readonly long MinFileSize = 512;//512 Bytes
         public static readonly long MaxProccessingSize = (128 * (long)Math.Pow(2, 20));//128MB
 
         // Main entry point for our Azure Function. Listens for webhooks from OneDrive and responds to the webhook with a 204 No Content.
-        [FunctionName("OneDriveRobotFunctionVersion12")]
+        [FunctionName("OneDriveRobotProtection")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         //public static async Task<object> Run(HttpRequestMessage req, CloudTable syncStateTable, CloudTable tokenCacheTable, TraceWriter log)
         {
-            log.Info($"Running Version 129 (for debugging: 05:55)");
-
             log.Info($"Webhook was triggered!");
 
             CloudTable syncStateTable = CloudTableInterface.GetCloudTable(SyncName, StorageConnentionString);

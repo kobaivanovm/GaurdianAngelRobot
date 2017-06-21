@@ -10,7 +10,7 @@ namespace DataRobotNoTableParam
     {
         public static string[] Extensions = { ".xlsx", ".docx", ".pptx", ".txt", ".wmv", ".jpg", ".jpeg",
             ".xls", ".doc", ".ppt", ".pptx", ".mp3", ".wav", ".zip", ".7z", ".c", ".h", ".cpp", ".cs", ".java",
-            ".py", ".swift", ".torrent", ".ics", ".sql", ".pdf", ".png", "mp4"};
+            ".py", ".swift", ".torrent", ".ics", ".sql", ".pdf", ".png", ".mp4"};
         public static string Excel = ".xlsx";
         public static string Word = ".docx";
         public static string PowerPoint = ".pptx";

@@ -66,7 +66,7 @@ namespace DataRobotNoTableParam
                 bool IsBeingAttacked = await DoWorkOnSuspectedFiles(client, HarmedDriveItems, log);
                 if (IsBeingAttacked == true)
                 {
-                    log.Info($"Suspicious file was foind to be under attack.");
+                    log.Info($"Suspicious file was found to be under attack.");
                     // Do something to stop it.
                     SendEmailToUser(UserSubscriptionID, UsersTable, log);
                 }
