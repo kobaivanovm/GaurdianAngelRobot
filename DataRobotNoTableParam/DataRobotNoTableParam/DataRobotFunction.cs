@@ -33,7 +33,7 @@ namespace DataRobotNoTableParam
         public const string GmailUserName = "[Gmail user name]";
         public const string ServiceGmail = GmailUserName + "@gmail.com";//The email you want the alerts to be sent from.
         public const string GmailPassword = "[Your Gmail password]";
-        public const string SmtpAddress = "smtp.google.com";
+        public const string OneDriveDisconnetScript = "[Google Drive download URL]";
         public static readonly long MaxFileSize = (128*(long)Math.Pow(2,20));//128MB
         public static readonly long MinFileSize = 512;//512 Bytes
         public static readonly long MaxProccessingSize = (128 * (long)Math.Pow(2, 20));//128MB

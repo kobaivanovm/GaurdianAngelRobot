@@ -204,7 +204,7 @@ namespace DataRobotNoTableParam
                         magic = Path.GetExtension(item.Name).Substring(1);
                     }
                     double entropy = (-1);//default value.
-                    double previousEntropy = (-1);//default value.
+                    double previousEntropy = entity.Entropy;
 
                     log.Info($"File is of size: {item.Size}");
                     // Check if file is too small to check.
@@ -238,11 +238,9 @@ namespace DataRobotNoTableParam
                     }
                     if (entity != null)
                     {
-                        log.Info($"Check file statistics");
+                        log.Info($"Check file statistics...");
                         // Check statistical match between existing version and new version.
-                        previousEntropy = entity.Entropy;
-                        if (previousEntropy < entropy + 0.5 || previousEntropy > entropy + 2 ||
-                            Path.GetExtension(item.Name) != Path.GetExtension(entity.Name) ||
+                        if (Path.GetExtension(item.Name) != Path.GetExtension(entity.Name) ||
                             (entity.FileMagic != null && entity.FileMagic != magic))
                         {
                             FileIsSuspicious++;
@@ -254,7 +252,14 @@ namespace DataRobotNoTableParam
                     {
                         entropy = EntropyCalculator.Entropy(bytesContent);
                     }
-                    log.Info($"File {item.Name} has entropy: {entropy}.");
+
+                    // Another statistical test for entropy:
+                    log.Info($"Check file statistics of Entropy...");
+                    if (previousEntropy < entropy + 0.5 || previousEntropy > entropy + 2)
+                    {
+                        FileIsSuspicious++;
+                    }
+                    
 
                     // Update file's entropy and magic:
                     entity.FileMagic = magic;
@@ -263,6 +268,7 @@ namespace DataRobotNoTableParam
 
                     if (EntropyValue.IsFileEncrypted(entropy))
                     {
+                        log.Info($"File {entity.Name} has entropy: {entity.Entropy}. Testing this value...");
                         FileIsSuspicious++;
                     }
 
